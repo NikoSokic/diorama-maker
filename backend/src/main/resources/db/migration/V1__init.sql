@@ -1,0 +1,1 @@
+-- Početna migracija: namjerno prazna, shema se dodaje u sljedećim migracijama.

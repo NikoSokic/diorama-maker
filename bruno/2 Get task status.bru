@@ -1,0 +1,17 @@
+meta {
+  name: 2 Get task status
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base}}/tasks/{{taskId}}
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  if (res.body.data.status === "success") {
+    bru.setVar("modelUrl", res.body.data.output.model_url);
+  }
+}

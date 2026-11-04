@@ -1,0 +1,22 @@
+meta {
+  name: 1 Create text-to-model task
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base}}/generation/text-to-model
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "prompt": "cute cartoon fox, low-poly",
+    "model": "tripo-v3.1"
+  }
+}
+
+script:post-response {
+  bru.setVar("taskId", res.body.data.task_id);
+}

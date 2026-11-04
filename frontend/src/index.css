@@ -1,0 +1,22 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #1b1f27;
+  font-family: system-ui, sans-serif;
+}
+
+.health-status {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-size: 13px;
+}

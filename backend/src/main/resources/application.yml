@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: diorama
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+diorama:
+  tripo:
+    api-key: ${TRIPO_API_KEY}
+  gemini:
+    api-key: ${GEMINI_API_KEY}

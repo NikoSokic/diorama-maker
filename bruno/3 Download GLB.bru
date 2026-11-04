@@ -1,0 +1,16 @@
+meta {
+  name: 3 Download GLB
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{modelUrl}}
+  body: none
+  auth: none
+}
+
+docs {
+  Auth je namjerno isključen: modelUrl može biti na drugom hostu i Tripo ključ se tamo ne šalje.
+  Odgovor spremi kao frontend/public/models/test.glb.
+}
