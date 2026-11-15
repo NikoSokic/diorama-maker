@@ -4,7 +4,7 @@
 
 | Phase | State |
 |---|---|
-| 1. Setup & verification | **done** (2026-11-15) — waiting on the owner for accounts + `.env` |
+| 1. Setup & verification | **done** (2026-11-16) — all keys verified (`npm run verify` green) |
 | 2. Backend pipeline | next |
 | 3. 3D player | – |
 | 4. Product UX | – |
@@ -12,8 +12,7 @@
 
 ## Next step
 
-Owner: finish the Supabase + `.env` checklist, then `npm run verify` must print "All checks passed".
-Then start Phase 2 in a fresh session (spec §3–4): Flyway schema, StoryPlan + validation, Gemini client, Tripo client (mock + live), Storage client, async pipeline, credit guard, tests.
+Start Phase 2 in a fresh session (spec §3–4): Flyway schema, StoryPlan + validation, Gemini client, Tripo client (mock + live), Storage client, async pipeline, credit guard, tests.
 
 ## Phase 1 — done
 
