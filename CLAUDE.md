@@ -43,5 +43,6 @@ bruno/      manual Tripo API collection (secret var lives in Bruno, not in git)
 - JDK on this machine is 25; the build targets Java 21 (`java.version` in `pom.xml`). Maven comes from the wrapper — no global Maven.
 - No Docker here. The database is Supabase; backend tests must not need Docker (use web slices / embedded Postgres, not Testcontainers).
 - `.env` is parsed by Node **and** by Spring as a properties file: comments on their own line only, no quotes, no backslashes.
-- The repo lives in a OneDrive folder: if a build fails with a file-lock error, retry once before investigating.
+- Repo location: `C:\Users\Niko\Projekti\Diorama Maker` (moved out of OneDrive on 2026-11-16).
+- `run_overnight.sh` (owner's runner, untracked) runs phases unattended and checks for the line `PHASE <n> DONE` in `PROGRESS.md` — append it when a phase is finished.
 - Code comments and identifiers in English; user-facing UI text in HR + EN; the final README is in Croatian.

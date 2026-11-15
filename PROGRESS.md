@@ -10,6 +10,8 @@
 | 4. Product UX | – |
 | 5. Live run & finish | – |
 
+PHASE 1 DONE
+
 ## Next step
 
 Start Phase 2 in a fresh session (spec §3–4): Flyway schema, StoryPlan + validation, Gemini client, Tripo client (mock + live), Storage client, async pipeline, credit guard, tests.
