@@ -36,3 +36,8 @@ bruno/**/secrets.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Test output
+frontend/test-results/
+frontend/playwright-report/
+frontend/coverage/

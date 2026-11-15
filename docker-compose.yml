@@ -1,12 +1,19 @@
+# OPTIONAL: local Postgres for offline development instead of Supabase.
+# The default setup uses Supabase (see .env.example), so Docker is not required.
+# To use this instead, set in .env:
+#   SUPABASE_DB_URL=jdbc:postgresql://localhost:5432/diorama
+#   SUPABASE_DB_USER=diorama
+#   SUPABASE_DB_PASSWORD=diorama
+# The full app compose file (backend + frontend) is added in Phase 5.
 services:
   postgres:
-    image: postgres:16
+    image: postgres:17
     environment:
       POSTGRES_DB: diorama
-      POSTGRES_USER: ${DB_USER:?postavi DB_USER u .env}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?postavi DB_PASSWORD u .env}
+      POSTGRES_USER: diorama
+      POSTGRES_PASSWORD: diorama
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - diorama-pgdata:/var/lib/postgresql/data
 

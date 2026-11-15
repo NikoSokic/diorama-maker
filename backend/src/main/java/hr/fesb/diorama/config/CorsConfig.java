@@ -1,5 +1,6 @@
 package hr.fesb.diorama.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -7,11 +8,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
+	private final String frontendOrigin;
+
+	public CorsConfig(@Value("${diorama.frontend-origin:http://localhost:5173}") String frontendOrigin) {
+		this.frontendOrigin = frontendOrigin;
+	}
+
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/api/**")
-			.allowedOrigins("http://localhost:5173")
-			.allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+			.allowedOrigins(frontendOrigin)
+			.allowedMethods("GET", "POST", "OPTIONS");
 	}
 
 }

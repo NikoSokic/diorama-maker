@@ -1,66 +1,54 @@
 # Diorama Maker
 
-Web aplikacija koja od korisnikove priče radi animiranu 3D dioramu: LLM napiše scenarij (JSON), Tripo3D API generira low-poly GLB modele, a Three.js odigra priču.
+Web aplikacija koja od kratke priče radi animiranu 3D slikovnicu: Gemini priču pretvori u scenarij (JSON), Tripo3D API generira 3D modele likova, a Three.js odigra priču s naracijom i titlovima.
 
-Trenutno je ovo samo kostur projekta, bez poslovne logike.
+Projekt je u izradi. Stanje i odluke: [PROGRESS.md](PROGRESS.md). Specifikacija: [docs/DIORAMA_SPEC.md](docs/DIORAMA_SPEC.md). Bilješke o API-jima: [docs/API_NOTES.md](docs/API_NOTES.md).
 
 ## Preduvjeti
 
-- JDK 21 ili noviji
+- JDK 21 ili noviji (Maven dolazi kroz `mvnw`, ne treba ga instalirati)
 - Node.js 22 ili noviji
-- Docker s Docker Composeom
-- [Bruno](https://www.usebruno.com/), za kolekciju u `bruno/`
+- Računi: Tripo3D (API ključ), Google AI Studio (Gemini ključ), Supabase (baza i Storage)
+- Neobavezno: [Bruno](https://www.usebruno.com/) za kolekciju u `bruno/`, Docker za lokalni Postgres umjesto Supabasea
 
 ## Postavljanje
 
-Kopiraj `.env.example` u `.env` i popuni vrijednosti:
+1. Kopiraj `.env.example` u `.env` i popuni vrijednosti. Datoteka `.env` se ne commita.
+2. Iz korijena projekta provjeri ključeve:
 
+```powershell
+npm install
+npm run verify
 ```
-DB_URL=jdbc:postgresql://localhost:5432/diorama
-DB_USER=diorama
-DB_PASSWORD=<lozinka po izboru>
-TRIPO_API_KEY=<tvoj ključ>
-GEMINI_API_KEY=<tvoj ključ>
-```
+
+Skripte ispisuju samo stanje (npr. broj kredita), nikad same ključeve. `TRIPO_MODE=mock` je zadana vrijednost i ne troši kredite.
 
 ## Pokretanje
 
-Baza, iz korijena projekta:
-
-```bash
-docker compose up -d
-```
-
-Backend, na `http://localhost:8080`:
-
-```bash
-# Bash
-cd backend
-set -a; source ../.env; set +a
-./mvnw spring-boot:run
-```
+Backend, na `http://localhost:8080` (sam učitava `../.env`):
 
 ```powershell
-# PowerShell
 cd backend
-Get-Content ..\.env | ForEach-Object { $name, $value = $_ -split '=', 2; Set-Item "env:$name" $value }
 .\mvnw.cmd spring-boot:run
 ```
 
-Provjera: `curl localhost:8080/api/health` vraća `{"status":"ok"}`.
+Provjera: `curl.exe localhost:8080/api/health` vraća `{"status":"ok"}`.
 
 Frontend, na `http://localhost:5173`:
 
-```bash
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Scena učitava `frontend/public/models/test.glb`. Ako te datoteke nema, prikazuje rotirajuću kocku.
+## Provjere prije commita
+
+```powershell
+cd backend; .\mvnw.cmd -q -B verify
+cd ..\frontend; npm run build; npm run lint; npm test
+```
 
 ## Bruno kolekcija
 
-Otvori mapu `bruno/` u Brunu, odaberi environment `local` i u njemu upiši `tripoApiKey`. To je secret varijabla, pa vrijednost ne završava u repozitoriju. Zatim pokreni zahtjeve redom. Zahtjev 2 ponavljaj dok status ne bude `success`.
-
-Rezultate spikea upisuj u `spike-notes.md`.
+Otvori mapu `bruno/` u Brunu, odaberi environment `local` i u njemu upiši `tripoApiKey`. To je secret varijabla, pa vrijednost ne završava u repozitoriju. Zahtjev 0 samo čita stanje kredita. Zahtjev 1 troši prave kredite. Zahtjev 2 ponavljaj dok status ne bude `success`, a zatim odmah pokreni zahtjev 3 jer poveznica na model istječe za 5 minuta.

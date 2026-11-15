@@ -1,17 +1,38 @@
 spring:
   application:
     name: diorama
+  config:
+    # Loads the repo-root .env automatically (works from /backend and from the repo root).
+    import:
+      - optional:file:../.env[.properties]
+      - optional:file:.env[.properties]
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${SUPABASE_DB_URL:}
+    username: ${SUPABASE_DB_USER:}
+    password: ${SUPABASE_DB_PASSWORD:}
+    hikari:
+      # Supabase free tier: keep the pool small (session pooler has a low client limit).
+      maximum-pool-size: 5
+      minimum-idle: 1
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
 
 diorama:
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  max-stories-per-ip-per-day: ${MAX_STORIES_PER_IP_PER_DAY:5}
+  ip-hash-salt: ${IP_HASH_SALT:}
   tripo:
-    api-key: ${TRIPO_API_KEY}
+    api-key: ${TRIPO_API_KEY:}
+    base-url: ${TRIPO_BASE_URL:https://openapi.tripo3d.ai/v3}
+    # mock | live — mock is the default; live spends real credits.
+    mode: ${TRIPO_MODE:mock}
+    enable-rigging: ${ENABLE_RIGGING:true}
   gemini:
-    api-key: ${GEMINI_API_KEY}
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-3.8-flash}
+  supabase:
+    url: ${SUPABASE_URL:}
+    service-key: ${SUPABASE_SERVICE_KEY:}
+    bucket: ${SUPABASE_BUCKET:models}
