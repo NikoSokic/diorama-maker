@@ -14,15 +14,24 @@ spring:
       # Supabase free tier: keep the pool small (session pooler has a low client limit).
       maximum-pool-size: 5
       minimum-idle: 1
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
+  jackson:
+    default-property-inclusion: non_null
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
+server:
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
 
 diorama:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   max-stories-per-ip-per-day: ${MAX_STORIES_PER_IP_PER_DAY:5}
   ip-hash-salt: ${IP_HASH_SALT:}
+  # Optional: protects GET /api/credits when called from a non-local address (X-Admin-Token header).
+  admin-token: ${ADMIN_TOKEN:}
+  trust-proxy: ${TRUST_PROXY:false}
   tripo:
     api-key: ${TRIPO_API_KEY:}
     base-url: ${TRIPO_BASE_URL:https://openapi.tripo3d.ai/v3}
@@ -31,7 +40,12 @@ diorama:
     enable-rigging: ${ENABLE_RIGGING:true}
   gemini:
     api-key: ${GEMINI_API_KEY:}
+    # live | mock — mock uses the offline planner (also used automatically when the key is missing).
+    mode: ${GEMINI_MODE:live}
     model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+  storage:
+    # auto | supabase | local
+    mode: ${STORAGE_MODE:auto}
   supabase:
     url: ${SUPABASE_URL:}
     service-key: ${SUPABASE_SERVICE_KEY:}

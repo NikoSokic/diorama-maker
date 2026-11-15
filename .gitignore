@@ -44,3 +44,6 @@ frontend/coverage/
 
 # Overnight runner output
 overnight.log
+
+# Local model files written by the backend in mock mode
+backend/data/
