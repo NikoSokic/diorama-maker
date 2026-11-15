@@ -258,7 +258,15 @@ Text models with a **free tier** (pricing page): `gemini-4-hydrogen`, `gemini-3.
 `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-2.5-flash-lite` (legacy). `gemini-4-argon` has no free tier.
 `gemini-2.5-flash` is deprecated and reroutes on 2026-12-01 — do not use.
 
-**Default: `GEMINI_MODEL=gemini-3.8-flash`** (current stable Flash). Fallback if its free quota is too small: `gemini-3.5-flash-lite`.
+**Default: `GEMINI_MODEL=gemini-3.5-flash-lite`.** Measured on 2026-11-15 with the owner's free key:
+
+| Model | Interactions API | Legacy generateContent |
+|---|---|---|
+| `gemini-3.5-flash-lite` | **1.0 s**, valid JSON | – |
+| `gemini-3.8-flash` | no answer within 90 s | 31.7 s, valid JSON |
+
+`gemini-3.8-flash` is too slow on the free tier for a live progress screen. If flash-lite plans turn out too weak in Phase 2,
+retry with `gemini-3.6-flash` and measure again.
 
 Free-tier RPM/RPD are **not published in the docs**; they are shown per project at <https://aistudio.google.com/rate-limit>.
 On the free tier, prompts and outputs may be used by Google to improve products — fine for children's stories, never send personal data.
@@ -286,8 +294,11 @@ Api-Revision: 2026-05-20
 - `store: false` — interactions are stored server-side by default; we don't need that.
 - Gemini 3.6+ and 4 **ignore `temperature`, `top_p`, `top_k`** — don't send them.
 - `system_instruction` and `generation_config` are per-request.
-- Response: `id`, `status`, and a `steps[]` array; the answer is the text content of the final `model_output` step
-  (SDK shortcut: `output_text`). **[VERIFY]** exact raw JSON keys and usage fields — `npm run verify:gemini` prints the response keys and step types.
+- Response (**verified** 2026-11-15, `store: false`): top-level keys `status` (`completed`), `usage`, `created`, `updated`,
+  `service_tier`, `steps`, `object`, `model` — **no `id`** when not stored. `steps[]` = `thought` step(s), then `model_output`;
+  the answer is the `text` in the `model_output` step's `content[]`. Skip `thought` steps.
+- Thinking: `generation_config.thinking_level: "low"` is accepted.
+- Always set a client timeout (the Java client: 30 s) and fall back to legacy `generateContent` on timeout.
 - The older `POST /v1beta/models/{model}:generateContent` (`generationConfig.responseMimeType` + `responseSchema`) is "legacy but fully supported" — kept as the fallback in the verify script.
 - Model metadata / existence check: `GET /v1beta/models/{model}`.
 

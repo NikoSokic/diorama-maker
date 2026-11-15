@@ -10,7 +10,7 @@ async function pickAuthHeaders(url, key) {
   let last
   for (const v of variants) {
     last = await fetchJson(`${url}/storage/v1/bucket`, { headers: v.headers })
-    if (last.ok) return v
+    if (last.ok) return { auth: v, buckets: Array.isArray(last.body) ? last.body : [] }
   }
   if (last.status === 401 || last.status === 403) {
     fail(`Storage rejected SUPABASE_SERVICE_KEY (HTTP ${last.status}). Use the secret key (sb_secret_...), not the publishable one.`)
@@ -27,11 +27,17 @@ await run('Supabase Storage', async () => {
   if (key.startsWith('sb_publishable_')) fail('SUPABASE_SERVICE_KEY holds a publishable key — the backend needs the secret key (sb_secret_...)')
   info(`url: ${url}, key: ${describeSecret(key)}, bucket: ${bucket}`)
 
-  const auth = await pickAuthHeaders(url, key)
+  const { auth, buckets } = await pickAuthHeaders(url, key)
   ok(`service key accepted (headers: ${auth.label})`)
 
+  const names = buckets.map((b) => b.name)
+  if (!names.includes(bucket)) {
+    const close = names.find((n) => n.trim().toLowerCase() === bucket.toLowerCase())
+    if (close !== undefined) fail(`bucket is named "${close}" but must be exactly "${bucket}" (lowercase, no spaces) — delete it and create "${bucket}"`)
+    fail(`bucket "${bucket}" not found. Existing buckets: ${names.length ? names.map((n) => `"${n}"`).join(', ') : 'none'} — create "${bucket}" in Storage (public bucket)`)
+  }
   const meta = await fetchJson(`${url}/storage/v1/bucket/${bucket}`, { headers: auth.headers })
-  if (!meta.ok) fail(`bucket "${bucket}" not found — create it in Storage (public bucket). HTTP ${meta.status}`)
+  if (!meta.ok) fail(`could not read bucket "${bucket}", HTTP ${meta.status}: ${meta.text.slice(0, 200)}`)
   if (meta.body?.public !== true) fail(`bucket "${bucket}" exists but is not public — enable "Public bucket" in its settings`)
   ok(`bucket "${bucket}" exists and is public`)
 
@@ -68,7 +74,11 @@ await run('Supabase Postgres', async () => {
     fail('SUPABASE_DB_URL is not a valid URL')
   }
   if (target.username || target.password) {
-    fail('do not put the user/password inside SUPABASE_DB_URL — use SUPABASE_DB_USER and SUPABASE_DB_PASSWORD')
+    fail(
+      `SUPABASE_DB_URL contains "user:password@" — remove that part. It must be exactly ` +
+        `jdbc:postgresql://${target.hostname}:${target.port || 5432}/postgres?sslmode=require ` +
+        `(user and password go in SUPABASE_DB_USER and SUPABASE_DB_PASSWORD)`,
+    )
   }
   const port = Number(target.port || 5432)
   const database = target.pathname.replace(/^\//, '') || 'postgres'

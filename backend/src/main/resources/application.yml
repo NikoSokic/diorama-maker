@@ -31,7 +31,7 @@ diorama:
     enable-rigging: ${ENABLE_RIGGING:true}
   gemini:
     api-key: ${GEMINI_API_KEY:}
-    model: ${GEMINI_MODEL:gemini-3.8-flash}
+    model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
   supabase:
     url: ${SUPABASE_URL:}
     service-key: ${SUPABASE_SERVICE_KEY:}

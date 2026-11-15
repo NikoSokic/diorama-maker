@@ -38,7 +38,7 @@ Then start Phase 2 in a fresh session (spec §3–4): Flyway schema, StoryPlan +
 | 6 | Biped rig `v1.0-20240301` with 5 clips (idle, walk, run, jump, victory_celebration) | Only rig version with celebrate/wave/dance presets; 5 = per-request max. Fallback: v3.0 rig |
 | 7 | Quadrupeds get only `preset:quadruped:walk`; everything else procedural | That is the only quadruped preset Tripo offers |
 | 8 | Retarget with `animate_in_place=true` | The timeline engine moves characters; root motion would double it |
-| 9 | Gemini via the Interactions API, model `gemini-3.8-flash`, `store=false` | Current stable free Flash; `generateContent` is now legacy |
+| 9 | Gemini via the Interactions API, model `gemini-3.5-flash-lite`, `store=false`, fallback to `generateContent` | Measured: flash-lite 1 s; `gemini-3.8-flash` >90 s on Interactions and 32 s on generateContent (free tier) |
 | 10 | Two-layer moderation: Gemini safety settings + `safeForKids` field in the plan | Default safety threshold is `off` on current models |
 | 11 | Backend tests without Docker (web slices now, embedded Postgres in Phase 2) | Docker is not installed and not needed with Supabase |
 | 12 | Extra env vars: `SUPABASE_BUCKET`, `FRONTEND_ORIGIN`, `IP_HASH_SALT` | Needed for storage, CORS and IP hashing; all have safe defaults except the salt |
@@ -51,8 +51,8 @@ Then start Phase 2 in a fresh session (spec §3–4): Flyway schema, StoryPlan +
 
 ## Open questions / risks
 
-1. **Tripo API credits.** The docs promise no free API grant, and API credits are separate from the Studio web credits. `npm run verify:tripo` shows the real balance. A fully rigged 3-biped story costs up to 285 credits; unrigged 60. If the balance is small, Phase 5 runs one small live story and rigging is limited by the credit guard.
-2. **Gemini free-tier limits** are only visible at aistudio.google.com/rate-limit. If `gemini-3.8-flash` is too tight, switch `GEMINI_MODEL` to `gemini-3.5-flash-lite`.
+1. **Tripo API credits: balance is 0** (verified 2026-11-15, key works). Phases 2–4 run fully in mock mode, so this blocks nothing yet. Phase 5 needs credits: minimum top-up is $1 = 100 credits (enough for ~5 static or 1 rigged biped), which conflicts with the 0 € budget — owner decides before Phase 5. A fully rigged 3-biped story costs up to 285 credits; unrigged 60. If the balance is small, Phase 5 runs one small live story and rigging is limited by the credit guard.
+2. **Gemini free-tier limits** are only visible at aistudio.google.com/rate-limit. Key verified, structured output works.
 3. **[VERIFY] items in API_NOTES** (Interactions raw response keys, multi-clip retarget output, P1 pricing) — resolved by the verify script output and the Phase 5 live run.
 4. Supabase free projects pause after about a week of inactivity — un-pause before a demo.
 

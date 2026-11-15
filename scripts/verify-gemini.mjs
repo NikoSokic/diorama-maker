@@ -47,29 +47,38 @@ await run('Gemini', async () => {
   ok(`model exists: ${meta.body?.displayName ?? model}`)
 
   let text = ''
-  const interaction = await fetchJson(
-    `${API}/interactions`,
-    {
-      method: 'POST',
-      headers: { ...headers, 'Api-Revision': API_REVISION },
-      body: JSON.stringify({
-        model,
-        input: prompt,
-        store: false,
-        response_format: { type: 'text', mime_type: 'application/json', schema },
-      }),
-    },
-    60_000,
-  )
+  let interaction = null
+  const started = Date.now()
+  try {
+    interaction = await fetchJson(
+      `${API}/interactions`,
+      {
+        method: 'POST',
+        headers: { ...headers, 'Api-Revision': API_REVISION },
+        body: JSON.stringify({
+          model,
+          input: prompt,
+          store: false,
+          generation_config: { thinking_level: 'low' },
+          response_format: { type: 'text', mime_type: 'application/json', schema },
+        }),
+      },
+      90_000,
+    )
+  } catch (e) {
+    warn(`Interactions API did not answer within ${Math.round((Date.now() - started) / 1000)} s (${e.message})`)
+  }
 
-  if (interaction.ok) {
+  if (interaction?.ok) {
     text = extractText(interaction.body)
-    ok(`Interactions API responded (status: ${interaction.body?.status ?? 'n/a'})`)
+    ok(`Interactions API responded in ${((Date.now() - started) / 1000).toFixed(1)} s (status: ${interaction.body?.status ?? 'n/a'})`)
     info(`response keys: ${Object.keys(interaction.body ?? {}).join(', ')}`)
     const stepTypes = (interaction.body?.steps ?? []).map((s) => s?.type).join(', ')
     if (stepTypes) info(`step types: ${stepTypes}`)
-  } else if (interaction.status === 404 || interaction.status === 400) {
-    warn(`Interactions API rejected the request (${explain(interaction)}); trying legacy generateContent`)
+  } else if (!interaction || interaction.status === 404 || interaction.status === 400) {
+    if (interaction) warn(`Interactions API rejected the request (${explain(interaction)})`)
+    info('trying legacy generateContent')
+    const legacyStarted = Date.now()
     const legacy = await fetchJson(
       `${API}/models/${encodeURIComponent(model)}:generateContent`,
       {
@@ -84,7 +93,7 @@ await run('Gemini', async () => {
     )
     if (!legacy.ok) fail(explain(legacy))
     text = (legacy.body?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('')
-    ok('legacy generateContent responded')
+    ok(`legacy generateContent responded in ${((Date.now() - legacyStarted) / 1000).toFixed(1)} s`)
   } else {
     fail(explain(interaction))
   }
