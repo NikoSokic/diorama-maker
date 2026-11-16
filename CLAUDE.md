@@ -39,6 +39,9 @@ bruno/      manual Tripo API collection (secret var lives in Bruno, not in git)
 | Backend run | `cd backend; .\mvnw.cmd spring-boot:run` → http://localhost:8080 (loads `../.env` itself) |
 | Frontend dev | `cd frontend; npm run dev` → http://localhost:5173 (proxies `/api` to 8080) |
 | Frontend checks | `cd frontend; npm run build; npm run lint; npm test` |
+| Frontend smoke test | `cd frontend; npm run smoke` (Playwright, builds and serves the app itself, backend answers stubbed) |
+| Whole app in Docker | `docker compose up --build` → http://localhost:5173 (no keys needed; not runnable on this machine) |
+| README screenshots | dev server running, then `cd frontend; node scripts/readme-shots.mjs` (writes `docs/screenshots`) |
 | Player visual check | dev server running, then `cd frontend; npm run shots` (PNG + contact sheets in `test-results/shots`; add words to filter: `npm run shots -- desert phone`) |
 | Player end-to-end | dev server running, then `cd frontend; npm run playthrough` (title → end in a real browser); `node scripts/story-check.mjs <slug>` for backend stories |
 | Player on mock data | http://localhost:5173/dev/player?story=mock-robot (options in `src/pages/DevPlayerPage.tsx`), no backend needed |

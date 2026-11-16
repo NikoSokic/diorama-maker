@@ -17,7 +17,7 @@ type Loaded = { slug: string; story?: StoryView; error?: ApiFailure | Error }
 /** /s/:slug: progress screen while the story is made, the player when it is ready, a friendly page when it failed. */
 export function StoryPage() {
   const { slug = '' } = useParams()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [loaded, setLoaded] = useState<Loaded>({ slug })
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export function StoryPage() {
     return (
       <Suspense fallback={<Notice title={t.player.raising} spinner />}>
         <div className="relative h-full">
-          <Player story={story} uiLang={undefined} shareUrl={window.location.href} />
+          <Player story={story} uiLang={lang} shareUrl={window.location.href} />
           <Link
             to="/"
             className="absolute left-3 top-3 z-30 rounded-full bg-black/35 px-3 py-1.5 text-sm font-bold text-white backdrop-blur hover:bg-black/55"

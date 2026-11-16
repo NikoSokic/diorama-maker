@@ -31,4 +31,13 @@ without doing any work. Run one of the two commands before the next unattended n
 
 - Un-pause the Supabase project if it has been idle for a week.
 - Decide how the work reaches `main`: `main` is still at the initial commit. `phase-2-backend` (which contains all of
-  Phase 1) is pushed but not merged and has no PR; `phase-1-setup` exists only on this machine.
+  Phase 1) is pushed but not merged and has no PR; `phase-1-setup` exists only on this machine. Phase 5 is on `phase-5-finish` (pushed, contains phases 1-5).
+- The dev database still holds the Phase 2 smoke-test stories, and the ones with a Gemini plan can show in the public gallery (not checked). Deleting rows is
+  your call (Supabase SQL editor: `truncate` the story tables), so it was left alone.
+
+## 4. Docker was never run (no Docker on this machine)
+
+`docker-compose.yml`, both Dockerfiles and `frontend/nginx.conf` were written and reviewed by reading only. On a machine
+with Docker Desktop: `docker compose up --build`, open http://localhost:5173, create one story. If the build fails,
+the most likely places are the Maven cache mount in `backend/Dockerfile` (needs BuildKit) and `npm ci` in
+`frontend/Dockerfile` (lockfile was generated on Windows).

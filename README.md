@@ -137,7 +137,6 @@ Stanje projekta i odluke: [PROGRESS.md](PROGRESS.md). Specifikacija: [docs/DIORA
 - Docker postavke nisu izgrađene na razvojnom računalu (na njemu nema Dockera), pa su provjerene samo čitanjem.
 - Nema korisničkih računa: polica „Tvoje priče” živi u `localStorage` preglednika.
 - Sličice u galeriji crtaju se iz okoliša i palete priče, jer prave sličice traže live Tripo modele.
-- Tipke u playeru prate jezik priče, a ne jezik sučelja.
 
 ## Bruno kolekcija
 

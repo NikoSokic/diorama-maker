@@ -39,6 +39,9 @@ services:
       # The only way in is the nginx of the frontend container, which sets X-Forwarded-For itself.
       TRUST_PROXY: "true"
       TRUSTED_PROXY_HOPS: "1"
+      # Every browser on this machine reaches nginx from the same Docker bridge address, and the loopback
+      # exemption of a plain local run does not apply here, so the default of 5 per day would run out quickly.
+      MAX_STORIES_PER_IP_PER_DAY: "200"
     depends_on:
       postgres:
         condition: service_healthy
