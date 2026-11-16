@@ -56,3 +56,5 @@ PHASE 4 DONE
 - Decisions: Docker build skips tests (they need the embedded Postgres; `mvnw verify` stays the gate); Maven cache mount instead of `dependency:go-offline`; compose always uses its own Postgres even when `.env` has Supabase values; screenshots stub the backend by URL path (a `**/api/**` glob also caught Vite's `/src/api/*.ts` modules).
 - Self-review, 3 weaknesses fixed: (1) in Docker every visitor shares the bridge address and loses the loopback exemption, so 5 stories/day ran out at once: compose sets 200; (2) player buttons ignored the HR/EN toggle: `StoryPage` now passes `uiLang`; (3) docs were stale: CLAUDE.md commands, open risks and NEEDS_OWNER.md updated.
 - Still open: gallery thumbnails are painted, not rendered (needs live models).
+
+PHASE 5 DONE
