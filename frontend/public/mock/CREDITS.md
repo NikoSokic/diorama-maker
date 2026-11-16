@@ -87,4 +87,7 @@ the backend keeps the same four in `backend/src/main/resources/mock-models`.
 Everything else on screen (islands, trees, houses, props, weather) is generated in code
 (`src/player/scene`), so there are no further third-party assets.
 
+Sound: ambience, weather, critters, footsteps and chimes are synthesised in code with the Web Audio API
+(`src/player/audio`, own work, CC0 1.0); there are no sound files.
+
 Fonts: Fredoka and Nunito, self-hosted through `@fontsource-variable/*` (SIL Open Font License 1.1).

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } 
 import { NoToneMapping } from 'three'
 import type { Lang, StoryView } from '../api/types'
 import { createPlayerStore, PlayerContext, usePlayer, type PlayerStore, type Quality } from './engine/store'
+import { useSoundscape } from './audio/useSoundscape'
 import { useNarration } from './narration/useNarration'
 import { Stage } from './Stage'
 import { CanvasErrorBoundary } from '../components/CanvasErrorBoundary'
@@ -41,6 +42,11 @@ function guessQuality(): Quality {
 
 function Narration() {
   useNarration()
+  return null
+}
+
+function Soundscape() {
+  useSoundscape()
   return null
 }
 
@@ -189,6 +195,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
       {!bare && (
         <>
           <Narration />
+          <Soundscape />
           <Subtitles />
           <Controls t={t} visible={active} onFullscreen={canFullscreen ? fullscreen : undefined} />
           <TitleCard t={t} />
