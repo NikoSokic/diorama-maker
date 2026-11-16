@@ -1,7 +1,7 @@
 // Thin client for our own backend (docs/API_NOTES.md §4).
 
-import { findMockStory } from '../mock/stories'
-import type { ApiError, StoryView } from './types'
+import { findMockStory, MOCK_STORIES } from '../mock/stories'
+import type { ApiError, CreatedStory, GalleryItem, Lang, StoryView } from './types'
 
 export class ApiFailure extends Error {
   readonly code: string
@@ -40,3 +40,33 @@ export function getStory(slug: string, signal?: AbortSignal): Promise<StoryView>
   if (mock) return Promise.resolve(mock)
   return request<StoryView>(`/api/stories/${encodeURIComponent(slug)}`, { signal })
 }
+
+/** Hands a story to the pipeline; the answer comes at once, the story is then polled by its slug. */
+export function createStory(text: string, lang: Lang, signal?: AbortSignal): Promise<CreatedStory> {
+  return request<CreatedStory>('/api/stories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept-Language': lang },
+    body: JSON.stringify({ text: text.trim(), lang }),
+    signal,
+  })
+}
+
+/** Public stories, newest first (the backend allows 1–48). */
+export function listStories(limit = 24, signal?: AbortSignal): Promise<GalleryItem[]> {
+  return request<GalleryItem[]>(`/api/stories?limit=${Math.min(48, Math.max(1, Math.round(limit)))}`, { signal })
+}
+
+/** A bundled sample story in the shape of a gallery item. */
+export function toGalleryItem(story: StoryView): GalleryItem {
+  return {
+    slug: story.slug,
+    title: story.title ?? story.plan?.title ?? story.slug,
+    mood: story.plan?.mood ?? 'cozy',
+    palette: story.plan?.palette ?? [],
+    environment: story.plan?.scenes[0]?.environment ?? 'meadow',
+    characters: story.characters.map((c) => c.displayName),
+    createdAt: story.createdAt,
+  }
+}
+
+export const SAMPLE_GALLERY: GalleryItem[] = MOCK_STORIES.map(toGalleryItem)

@@ -174,6 +174,24 @@ export interface StoryView {
   characters: StoryCharacter[]
 }
 
+/** Answer of `POST /api/stories`. */
+export interface CreatedStory {
+  slug: string
+  status: StoryStatus
+}
+
+/** One card of `GET /api/stories` (docs/API_NOTES.md §4.3). */
+export interface GalleryItem {
+  slug: string
+  title: string
+  mood: Mood
+  palette: string[]
+  environment: EnvironmentId
+  characters: string[]
+  createdAt?: string
+  thumbnailUrl?: string
+}
+
 export interface ApiError {
   code: string
   message: string
