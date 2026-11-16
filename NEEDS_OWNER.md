@@ -1,10 +1,16 @@
 # Needs the owner
 
-Things only Niko can do. Nothing here blocks Phases 3–4 (they run in mock mode).
+Things only Niko can do. Nothing here blocked the work: everything except the live Tripo run was finished in mock mode.
 
 ## 1. Tripo credits for Phase 5 (payment decision)
 
-- Balance is **0 credits** (checked 2026-11-15; the key itself works).
+- Balance is **0 credits, 0 frozen** (checked again at the start of Phase 5, 2026-11-16, with `npm run verify:tripo`;
+  the key itself works). **The live run was therefore not done**; Phase 5 was finished in mock mode.
+- Estimated cost of the planned live story (one rigged biped + one static prop character): **115 credits ≈ $1.15**.
+  Cheapest meaningful run (one fully rigged biped): 95 credits. Worst case (3 bipeds): 285 credits.
+- When credits exist, the live run is: set `TRIPO_MODE=live` in `.env`, start backend + frontend, then
+  `cd frontend; node scripts/story-check.mjs --new "A little robot waves at a star." en` (creates one story and plays
+  it in a real browser). Set `TRIPO_MODE=mock` back afterwards.
 - Phase 5 ("one real story end-to-end with live Tripo + rigging") cannot run without credits. The smallest top-up is
   **$1 = 100 credits**, which is outside the 0 € budget, so it is your call.
 - What credits buy: static model 20, rigged quadruped 55 (rig 25 + 1 clip 10), fully rigged biped 95 (rig 25 + 5 clips).
