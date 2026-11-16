@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
-import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, ShaderMaterial, Vector3 } from 'three'
+import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, ShaderMaterial, Vector2, Vector3 } from 'three'
 import { seededRandom } from '../engine/easing'
 import { usePlayerStore } from '../engine/store'
 import type { Atmosphere } from './atmosphere'
@@ -21,14 +21,19 @@ const SKY_FRAGMENT = /* glsl */ `
   uniform vec3 uDiscColor;
   uniform float uDiscSize;
   uniform float uDiscGlow;
+  uniform vec2 uResolution;
   varying vec3 vDirection;
 
   void main() {
     vec3 dir = normalize(vDirection);
-    float h = dir.y;
+    // A painted backdrop more than a physical sky: the gradient follows the screen (top colour at the top
+    // of the picture, horizon colour a little above the middle) and only leans on the view direction.
+    // Every shot, however steeply the camera looks down at the island, gets the whole gradient.
+    float screen = gl_FragCoord.y / uResolution.y;
+    float h = (screen - 0.52) * 1.25 + dir.y * 0.3;
     vec3 color = h > 0.0
-      ? mix(uHorizon, uTop, pow(h, 0.6))
-      : mix(uHorizon, uBottom, pow(-h, 0.55));
+      ? mix(uHorizon, uTop, pow(min(h / 0.55, 1.0), 0.8))
+      : mix(uHorizon, uBottom, pow(min(-h / 0.6, 1.0), 0.7));
 
     float d = max(dot(dir, uDiscDirection), 0.0);
     float disc = smoothstep(cos(uDiscSize) - 0.0016, cos(uDiscSize), d) * step(0.0001, uDiscSize);
@@ -60,11 +65,15 @@ export function SkyDome({ atmosphere }: { atmosphere: Atmosphere }) {
           uDiscColor: { value: new Color() },
           uDiscSize: { value: 0 },
           uDiscGlow: { value: 0 },
+          uResolution: { value: new Vector2(1, 1) },
         },
       }),
     [],
   )
   useEffect(() => () => material.dispose(), [material])
+  useFrame(({ gl }) => {
+    gl.getDrawingBufferSize(material.uniforms.uResolution.value)
+  })
 
   useEffect(() => {
     const u = material.uniforms

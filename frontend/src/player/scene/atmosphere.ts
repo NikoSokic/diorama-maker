@@ -40,9 +40,9 @@ export interface Atmosphere {
 
 const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
   morning: {
-    skyTop: '#74c0f2',
-    skyHorizon: '#ffe4c4',
-    skyBottom: '#ffd3ae',
+    skyTop: '#5fb4f5',
+    skyHorizon: '#ffe3c6',
+    skyBottom: '#ffc7a6',
     keyColor: '#ffe0b2',
     keyIntensity: 2.7,
     keyPosition: [-8, 7, 6],
@@ -53,7 +53,7 @@ const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
     rimIntensity: 0.9,
     fogColor: '#ffe6cf',
     fogDensity: 0.007,
-    discDirection: [-0.55, 0.22, -1],
+    discDirection: [-0.5, 0.1, -1],
     discColor: '#fff2cf',
     discSize: 0.05,
     discGlow: 0.9,
@@ -65,9 +65,9 @@ const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
     bloom: 0.55,
   },
   day: {
-    skyTop: '#3d9bef',
-    skyHorizon: '#bfe5ff',
-    skyBottom: '#eaf7ff',
+    skyTop: '#3492f0',
+    skyHorizon: '#a9dcff',
+    skyBottom: '#d9f1ff',
     keyColor: '#fff2d9',
     keyIntensity: 3.1,
     keyPosition: [-6, 11, 6],
@@ -78,7 +78,7 @@ const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
     rimIntensity: 0.7,
     fogColor: '#d4eeff',
     fogDensity: 0.006,
-    discDirection: [0.62, 0.62, -1],
+    discDirection: [0.5, 0.11, -1],
     discColor: '#fffbe6',
     discSize: 0.04,
     discGlow: 0.6,
@@ -93,17 +93,17 @@ const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
     skyTop: '#5a4db3',
     skyHorizon: '#ff9c6b',
     skyBottom: '#ffc58c',
-    keyColor: '#ff9a52',
-    keyIntensity: 3.0,
+    keyColor: '#ffb785',
+    keyIntensity: 2.6,
     keyPosition: [-9, 4, 4],
-    hemiSky: '#b9a4f0',
-    hemiGround: '#ffab7e',
-    hemiIntensity: 0.95,
+    hemiSky: '#cdbdf7',
+    hemiGround: '#f3bfa2',
+    hemiIntensity: 1.05,
     rimColor: '#ff7b9c',
     rimIntensity: 1.2,
     fogColor: '#ffb089',
     fogDensity: 0.009,
-    discDirection: [-0.3, 0.1, -1],
+    discDirection: [-0.3, 0.04, -1],
     discColor: '#ffd9a0',
     discSize: 0.085,
     discGlow: 1.3,
@@ -128,10 +128,10 @@ const OUTDOOR: Record<TimeOfDay, Atmosphere> = {
     rimIntensity: 1.1,
     fogColor: '#1c2763',
     fogDensity: 0.01,
-    discDirection: [0.5, 0.5, -1],
+    discDirection: [0.46, 0.1, -1],
     discColor: '#fff7df',
     discSize: 0.055,
-    discGlow: 0.8,
+    discGlow: 0.32,
     starOpacity: 0.9,
     cloudColor: '#4d5ea8',
     cloudAmount: 0.6,
@@ -273,7 +273,7 @@ export function atmosphereFor(kind: EnvKind, time: TimeOfDay, weather: Weather):
       a.skyHorizon = mist
       a.skyBottom = mix(a.skyBottom, mist, 0.7)
       a.fogColor = mist
-      a.fogDensity = Math.max(a.fogDensity, 0.034)
+      a.fogDensity = Math.max(a.fogDensity, 0.021)
       a.keyIntensity *= 0.7
       a.hemiIntensity *= 1.15
       a.discGlow *= 0.6

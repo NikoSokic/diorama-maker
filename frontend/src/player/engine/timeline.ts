@@ -257,7 +257,10 @@ function compileScene(
     }
 
     tracks[key].segments.push({ type, start: action.startAt, end, from, to, emotion, count })
-    states.set(key, { ...to })
+    // Whoever has arrived somewhere turns back to the audience; the next action starts from that pose,
+    // not from the direction of travel.
+    const arrived = to.visible && (MOVES.has(type) || type === 'jump')
+    states.set(key, arrived ? { ...to, heading: restHeading(to.x) } : { ...to })
   }
 
   return { index: sceneIndex, scene, duration, tracks }

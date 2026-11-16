@@ -24,15 +24,9 @@ import { usePlayerStore } from '../engine/store'
 import type { ActorPose, Motion } from '../engine/timeline'
 import { ENVIRONMENT_PRESETS } from '../scene/environments'
 import { Blob } from './Blob'
+import { BASE_HEIGHT, characterHeight } from './height'
 import { bodyOffset } from './procedural'
 
-/** Height in world units of a character with relativeSize 1. */
-const BASE_HEIGHT = 1.7
-
-export function characterHeight(relativeSize: number) {
-  // Compress the range: a mouse next to an elephant must still be visible, and the elephant must fit the frame.
-  return clamp(BASE_HEIGHT * Math.pow(clamp(relativeSize, 0.3, 3), 0.7), 0.75, 3.4)
-}
 
 const CLIP_PREFERENCE: Record<Motion, string[]> = {
   idle: ['idle'],

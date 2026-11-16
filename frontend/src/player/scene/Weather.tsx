@@ -26,7 +26,7 @@ const SPECS: Record<Kind, Spec> = {
   rain: { count: 1100, size: 520, color: '#d9ecff', opacity: 0.5, additive: false, mode: 0 },
   snow: { count: 800, size: 120, color: '#ffffff', opacity: 0.92, additive: false, mode: 1 },
   fireflies: { count: 70, size: 260, color: '#eaff8f', opacity: 1, additive: true, mode: 2 },
-  mist: { count: 26, size: 7000, color: '#ffffff', opacity: 0.2, additive: false, mode: 3 },
+  mist: { count: 22, size: 6000, color: '#ffffff', opacity: 0.1, additive: false, mode: 3 },
   pollen: { count: 70, size: 70, color: '#fff7d6', opacity: 0.7, additive: false, mode: 4 },
   dust: { count: 90, size: 60, color: '#ffe9c9', opacity: 0.5, additive: false, mode: 4 },
   bubbles: { count: 130, size: 190, color: '#e6fbff', opacity: 0.8, additive: false, mode: 5 },

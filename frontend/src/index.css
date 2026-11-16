@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/nunito';
+
+@theme {
+  --font-display: 'Fredoka Variable', 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --font-body: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+}
 
 html,
 body,
@@ -8,17 +15,6 @@ body,
 }
 
 body {
-  background: #1b1f27;
-  font-family: system-ui, sans-serif;
-}
-
-.health-status {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: rgb(0 0 0 / 60%);
-  color: #fff;
-  font-size: 13px;
+  background: #1d1533;
+  font-family: var(--font-body);
 }
