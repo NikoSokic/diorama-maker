@@ -1,5 +1,3 @@
-import '@fontsource-variable/fredoka'
-import '@fontsource-variable/nunito'
 import './player.css'
 
 import { PerformanceMonitor } from '@react-three/drei'
@@ -10,7 +8,8 @@ import type { Lang, StoryView } from '../api/types'
 import { createPlayerStore, PlayerContext, usePlayer, type PlayerStore, type Quality } from './engine/store'
 import { useNarration } from './narration/useNarration'
 import { Stage } from './Stage'
-import { Controls, Curtain, EndCard, Subtitles, TitleCard } from './ui/Overlay'
+import { CanvasErrorBoundary } from '../components/CanvasErrorBoundary'
+import { Controls, Curtain, EndCard, NoStage, Subtitles, TitleCard } from './ui/Overlay'
 import { PLAYER_STRINGS } from './ui/strings'
 
 export interface PlayerProps {
@@ -63,14 +62,33 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
   }, [])
 
   useEffect(() => {
-    wake()
+    // The buttons start visible; only the countdown to hiding them has to be started.
+    idle.current = setTimeout(() => setActive(false), 3200)
     return () => clearTimeout(idle.current)
-  }, [wake])
+  }, [])
 
   // As a backdrop the story simply starts over when it ends.
   useEffect(() => {
     if (bare && phase === 'ended') store.getState().start()
   }, [store, bare, phase])
+
+  // Nobody touches the screen during a story: keep a phone from dimming while it plays.
+  useEffect(() => {
+    if (bare || !playing || !('wakeLock' in navigator)) return
+    let lock: WakeLockSentinel | null = null
+    let released = false
+    navigator.wakeLock
+      .request('screen')
+      .then((sentinel) => {
+        if (released) void sentinel.release()
+        else lock = sentinel
+      })
+      .catch(() => undefined)
+    return () => {
+      released = true
+      void lock?.release().catch(() => undefined)
+    }
+  }, [bare, playing])
 
   const fullscreen = useCallback(() => {
     const el = root.current
@@ -140,6 +158,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
   return (
     <div ref={root} className={`dm-player ${playing && !active ? 'dm-quiet' : ''}`} onPointerMove={wake} onPointerDownCapture={wake}>
       <div className="dm-stage" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+        <CanvasErrorBoundary fallback={<NoStage t={t} />}>
         <Canvas
           flat
           shadows={quality === 'low' ? false : 'soft'}
@@ -154,6 +173,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
             <Stage />
           </PlayerContext.Provider>
         </Canvas>
+        </CanvasErrorBoundary>
       </div>
       {!bare && (
         <>

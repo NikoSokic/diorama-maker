@@ -109,11 +109,18 @@ export class Narrator {
   }
 
   pause() {
+    const synth = this.synth
+    if (!synth) return
     try {
-      this.synth?.pause()
+      synth.pause()
     } catch {
       // Nothing to pause.
     }
+    // Chrome on Android ignores pause(): the voice would talk on over a frozen picture. Stop it instead.
+    const token = this.token
+    setTimeout(() => {
+      if (token === this.token && synth.speaking && !synth.paused) this.cancel()
+    }, 250)
   }
 
   resume() {

@@ -39,6 +39,9 @@ bruno/      manual Tripo API collection (secret var lives in Bruno, not in git)
 | Backend run | `cd backend; .\mvnw.cmd spring-boot:run` → http://localhost:8080 (loads `../.env` itself) |
 | Frontend dev | `cd frontend; npm run dev` → http://localhost:5173 (proxies `/api` to 8080) |
 | Frontend checks | `cd frontend; npm run build; npm run lint; npm test` |
+| Player visual check | dev server running, then `cd frontend; npm run shots` (PNG + contact sheets in `test-results/shots`; add words to filter: `npm run shots -- desert phone`) |
+| Player end-to-end | dev server running, then `cd frontend; npm run playthrough` (title → end in a real browser); `node scripts/story-check.mjs <slug>` for backend stories |
+| Player on mock data | http://localhost:5173/dev/player?story=mock-robot (options in `src/pages/DevPlayerPage.tsx`), no backend needed |
 
 ## Environment notes
 - JDK on this machine is 25; the build targets Java 21 (`java.version` in `pom.xml`). Maven comes from the wrapper — no global Maven.

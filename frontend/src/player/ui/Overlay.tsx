@@ -1,3 +1,4 @@
+import { useProgress } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { COVER_MS, readingTime, REVEAL_MS, usePlayer, usePlayerStore } from '../engine/store'
 import {
@@ -157,10 +158,20 @@ export function Controls({ t, visible, onFullscreen }: { t: PlayerStrings; visib
   )
 }
 
+/** Longest the Play button waits for models; after that the story may start with stand-ins. */
+const MAX_LOADING_MS = 8000
+
 export function TitleCard({ t }: { t: PlayerStrings }) {
   const store = usePlayerStore()
   const phase = usePlayer((s) => s.phase)
   const plan = usePlayer((s) => s.plan)
+  const { active, progress } = useProgress()
+  const [waited, setWaited] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setWaited(true), MAX_LOADING_MS)
+    return () => clearTimeout(timer)
+  }, [])
+  const loading = active && !waited
   if (phase !== 'title') return null
   return (
     <div className="dm-card-layer dm-title-layer">
@@ -174,10 +185,33 @@ export function TitleCard({ t }: { t: PlayerStrings }) {
             </li>
           ))}
         </ul>
-        <button type="button" className="dm-big-button dm-pulse" onClick={() => store.getState().start()}>
-          <PlayIcon size={30} />
-          {t.play}
-        </button>
+        {loading ? (
+          <button type="button" className="dm-big-button dm-loading" disabled>
+            <span className="dm-spinner" />
+            {t.loading} {Math.round(progress)} %
+          </button>
+        ) : (
+          <button type="button" className="dm-big-button dm-pulse" onClick={() => store.getState().start()}>
+            <PlayIcon size={30} />
+            {t.play}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Shown instead of the stage when the browser cannot give us WebGL: the story is still there to read. */
+export function NoStage({ t }: { t: PlayerStrings }) {
+  const plan = usePlayer((s) => s.plan)
+  return (
+    <div className="dm-nostage">
+      <div>
+        <h1>{plan.title}</h1>
+        <p className="dm-nostage-note">{t.noWebgl}</p>
+        {plan.scenes.map((scene, i) => (
+          <p key={i}>{scene.narration}</p>
+        ))}
       </div>
     </div>
   )

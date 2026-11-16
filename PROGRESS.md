@@ -6,19 +6,87 @@
 |---|---|
 | 1. Setup & verification | **done** (2026-11-16) — all keys verified (`npm run verify` green) |
 | 2. Backend pipeline | **done** (2026-11-16) — 103 backend tests green, verified end to end with live Gemini + mock Tripo |
-| 3. 3D player | next |
-| 4. Product UX | – |
+| 3. 3D player | **done** (2026-11-16) — 74 frontend tests green, played end to end in a real browser (mock stories and backend stories) |
+| 4. Product UX | next |
 | 5. Live run & finish | – |
 
 PHASE 1 DONE
 
 ## Next step
 
-Start Phase 3 in a fresh session (spec §5 "Player"): the React Three Fiber player working against the mock backend.
-Read `docs/API_NOTES.md` §4 first — it is the exact JSON the player consumes (story view, model/animation URLs,
-placeholder characters, enums). Run the backend with `TRIPO_MODE=mock`; a story takes ~25 s and returns the bundled
-GLBs (`biped.glb` has clips Walking / Idle / Running / Jump / Dance, `quadruped.glb` has Walk, the other two are static).
-The Supabase database already holds a few ready sample stories from the Phase 2 smoke run (`GET /api/stories`).
+Start Phase 4 in a fresh session (spec §5 "Pages"): home with the live mini-diorama, the playful progress screen,
+gallery, how-it-works, i18n (HR/EN toggle), design polish.
+
+What Phase 4 can build on:
+- `<Player story={storyView} />` (`frontend/src/player/Player.tsx`, default export, lazy-load it) is the whole player.
+  Props: `uiLang`, `quality`, `shareUrl`, `muted`, `initial`, `bare`, `onStore`. **`bare` = no buttons, muted, loops**
+  — made for the hero backdrop on the home page.
+- `src/pages/StoryPage.tsx` (`/s/:slug`) already polls the backend and shows the player when the story is `READY`; its
+  waiting screen is a plain spinner + percentage and is the thing to replace with the progress screen.
+- `src/App.tsx` has a placeholder home that only links to the bundled stories; replace it.
+- `src/api/client.ts` (`getStory`, `ApiFailure`) and `src/api/types.ts` are the typed API; add `createStory` / `listStories`.
+- Player button texts live in `src/player/ui/strings.ts` (HR + EN); fold them into the app-wide i18n or leave them.
+- Design language already in the player (`src/player/player.css`): cream `#fff7e8`, plum ink `#3a2a4d`, coral
+  `#ff7a59`, sun `#ffcb52`, night `#1d1533`; Fredoka (display) + Nunito (body); round buttons with a chunky bottom edge.
+- Bundled stories `mock-robot` (HR) and `mock-star` (EN) work at `/s/mock-robot` with no backend.
+- Visual checks: `npm run dev`, then `npm run shots` (screenshots + contact sheets in `test-results/shots`) and
+  `npm run playthrough` (title → end in a real browser). `node scripts/story-check.mjs <slug>` plays backend stories.
+
+## Phase 3 — done
+
+Branch `phase-3-player` (pushed; not merged into `main`).
+
+- **Timeline engine** (`player/engine`): pure functions. `compileStory` turns the plan into per-character tracks
+  (enter from the rim, spacing between characters, look_at resolved against real positions, state carried between
+  scenes); `samplePose` gives any moment of any scene, so the story can be scrubbed and tested. `store.ts` is the
+  playback state (title → playing → ended, play/pause, previous/next/restart/seek, curtain, mute, quality).
+- **Environments**: all 12, procedural, one merged mesh each (vertex colours, wind sway in the vertex shader) on a
+  floating island with a rocky underside; water slab with moving light flecks and a foam line for beach and sea;
+  26 plan props; scenes in the same place share one layout. Sky gradient + sun/moon disc + twinkling stars + clouds.
+- **Time of day and weather**: 4 times × 6 weathers change sky, key/fill/rim light, fog, lit windows and lamps;
+  rain, snow, mist, fireflies and ambient pollen / dust / bubbles / leaves as GPU particles (one draw call each).
+- **Characters**: every GLB normalised (height from `relativeSize`, feet on the ground, facing the audience);
+  skeletal clips through `AnimationMixer` with 0.28 s crossfades and walk speed matched to ground speed; procedural
+  layer for everything else (hop-walk, squash and stretch, jump arcs, spin, wave, dance, celebrate, seven emotion
+  poses, emotion bubbles); stand-in blob for `PLACEHOLDER` characters, while loading and on load errors.
+- **Camera**: wide, closeup, orbit, follow, dolly_in, over_shoulder as pure shot functions; damped transitions through
+  drei `CameraControls`, hand-held sway, snap on cuts, free orbit while paused, portrait-aware framing.
+- **Narration**: large subtitles with word-by-word reveal; Web Speech API voice picked per language (hr-HR, en-US,
+  close relatives for Croatian), scenes wait for the narrator (up to 9 s), silent fallback everywhere.
+- **Cards and controls**: title card with cast and loading state, "Kraj / The End" card with replay, Web Share, copy
+  link and save picture (canvas → PNG); play/pause, previous/next, restart, mute, full screen, scene progress bar,
+  keyboard shortcuts (space, arrows, M, R, F); iris wipe between places, fade inside a place.
+- **Post-processing and performance**: bloom, ACES, saturation, vignette; soft shadows; DPR clamp; three quality
+  levels with automatic step-down (`PerformanceMonitor`); the player is its own lazy chunk (352 kB gzip).
+- **Mock data**: two bundled stories (`src/mock/stories.ts`, one with a placeholder character) + a generator for
+  "one environment" stories; `/dev/player?...` steers the player by query string (see `DevPlayerPage.tsx`).
+- **Tests** (74, Vitest, no browser): timeline, camera shots, store with fake timers, atmosphere for all
+  combinations, scenery for all 12 environments and all 26 props, island, voice picking, procedural animation.
+- **Verified in a real browser** (Playwright, 2026-11-16): screenshots of all 12 environments, story moments, both
+  cards, phone portrait and landscape, three quality levels; both bundled stories play from the title card to the end
+  by themselves at 60 fps with no console errors; two Gemini-planned stories from the Phase 2 database, served by the
+  backend in mock mode (`/s/t77rnmvrz`, `/s/48jbxdw9x`), load their models through `/api/files` and start playing; the no-WebGL fallback shows the story as text.
+
+### Visual iterations (screenshots → critique → fix)
+
+1. Round 1: paused frames had no camera placement (the rig skipped while "free"); sky was washed out because the
+   camera looks below the horizon; fog hid the characters; sunsets were one flat orange; characters kept facing their
+   walking direction; subtitles covered the characters. Fixed: snap the camera on every cut, sky gradient painted in
+   screen space, lighter fog and mist, softer sunset light, turn to the audience after arriving, subtitles move to the
+   bottom edge when the buttons fade and the picture is lifted 6 % (view offset).
+2. Round 2: on portrait phones the island was tiny; close-ups were too tight; the moon's halo greyed the night sky;
+   water turned grey at sunset. Fixed: portrait frames the play area instead of the whole island, close-up distance,
+   smaller night halo, water keeps some colour of its own.
+3. Round 3 was a confirmation pass (phones, close-up, night, sea, low quality).
+
+### Self-review — weaknesses found and fixed
+
+1. **No loading feedback.** Play could be pressed before the models had arrived and the story opened with stand-in
+   blobs. Fixed: the Play button shows "the cast is arriving… N %" until the GLBs are in (8 s cap).
+2. **Blank screen without WebGL.** Fixed: an error boundary around the canvas shows the story as readable text.
+3. **Phones.** Chrome on Android ignores `speechSynthesis.pause()`, so the narrator talked over a paused picture, and
+   the screen could dim mid-story. Fixed: speech is cancelled when pause did not take; a screen wake lock is held
+   while playing.
 
 ## Phase 2 — done
 
@@ -103,6 +171,16 @@ Branch `phase-2-backend` (pushed; not merged into `main`).
 | 25 | Stories still running when the backend stops are marked `FAILED (INTERRUPTED)` at the next start | Pipelines live in memory; clients must not poll forever. Assumes a single backend instance |
 | 26 | Behind a proxy the client IP is the `X-Forwarded-For` entry `TRUSTED_PROXY_HOPS` from the right | The left side of that header is client-controlled |
 | 27 | Slugs: 9 characters from an alphabet without vowels and look-alikes | Easy to read aloud, never spell a word, ~10^13 combinations |
+| 28 | Environments and props are generated in code, not loaded from Kenney / Quaternius packs | One consistent toy style for all 12 places, one draw call per scene, no downloads or licences to track, recolourable by time of day and story palette |
+| 29 | Timeline engine is pure (`compileStory` + `samplePose(t)`), React only renders the sampled pose | Seek, restart, scrubbing and unit tests for free; no drift between animation and story clock |
+| 30 | Discrete player state in a zustand store, per-frame values in a mutable `clock` read inside `useFrame` | React re-renders only on real state changes, never 60 times a second |
+| 31 | All scenes of a story with the same environment share one scenery layout and all their props | A fade inside a place must not reshuffle the trees; coming back shows the same place |
+| 32 | Sky gradient is painted in screen space (only leaning on view direction) | The camera always looks down at the island; a physical sky showed only its pale bottom band |
+| 33 | Camera shots are pure functions; the rig damps towards them and uses `CameraControls` only for the viewer's orbit while paused | Shots are testable and scrubbable; one camera library for both modes |
+| 34 | The picture is lifted 6 % with a view offset | Subtitles and buttons own the bottom of the screen; characters stay clear of them in every shot |
+| 35 | Tone mapping and grading in the effect composer on every quality level; renderer tone mapping off | One colour pipeline; "low" just drops bloom, vignette, MSAA and shadows |
+| 36 | Scene length = max(planned duration, reading time), and a speaking narrator can extend it by up to 9 s | Nobody loses the end of a sentence; a stuck speech engine cannot freeze the story |
+| 37 | `react/immutability` lint rule is off for `src/player/**` | three.js objects are mutated by design (uniforms, cameras, refs in `useFrame`) |
 
 ## Deviations from the spec
 
@@ -114,6 +192,11 @@ Branch `phase-2-backend` (pushed; not merged into `main`).
 - Spec's `@Async` is replaced by explicit executors (decision 23).
 - Spec's WebClient is replaced by the JDK `HttpClient` behind one small helper (`http/Http.java`: timeouts, retries with backoff); the WebFlux dependency added in Phase 1 is gone. The pipeline is blocking code on worker threads, so a reactive client added nothing.
 - Character status has an extra value `PLACEHOLDER` (spec only describes the behaviour), and the story view carries `plan.source`.
+- Spec says "build environments from CC0 low-poly packs … in `frontend/public/assets` with a CREDITS.md": they are
+  procedural instead (decision 28). The only third-party assets are the four sample GLBs in `frontend/public/mock`
+  (with `CREDITS.md`) and the two fonts.
+- Spec's "share" on the end card is three buttons (Web Share where the browser has it, copy link, save picture); the
+  picture is the 3D canvas only, without the HTML overlay.
 
 ## Open questions / risks
 
@@ -124,6 +207,18 @@ Branch `phase-2-backend` (pushed; not merged into `main`).
 5. **Development data in the Supabase database.** The Phase 2 smoke run left five stories (two public Gemini ones, two offline ones, one rejected as unsafe) whose models point to local `/api/files/...` URLs. Useful for Phases 3–4; before the public demo in Phase 5 clear them (`TRUNCATE stories, story_characters, models CASCADE`) so the gallery only shows live models.
 6. When Gemini is unavailable the app degrades to offline plans without telling the user; visible only as `plan.source = offline` and a WARN in the log. Consider a small "simple mode" hint in the UI (Phase 4).
 7. Deployment is not decided. Behind a proxy set `TRUST_PROXY=true` and `TRUSTED_PROXY_HOPS`; local file storage does not survive redeploys, so a deployed instance needs `STORAGE_MODE=supabase`.
+8. **The player has only seen the mock models.** Real Tripo output will differ: other proportions, pivots, facing
+   direction (the player assumes models face +z), heavier meshes, other clip names and speeds. `normalize()` and the
+   clip mapping in `Actor.tsx` are the places to adjust in Phase 5.
+9. **Narration was not heard, only exercised.** Headless Chromium has no voices, so voice picking is unit-tested and
+   the silent path is browser-tested; listen to a HR and an EN story on a real desktop and a phone (Phase 4/5).
+   Windows usually has no Croatian voice installed — then HR stories are subtitles only, by design.
+10. **No real phone was used.** Phone layouts were checked as viewports (390×780, 780×390) on a desktop GPU; the
+    60 fps figure is from this machine. Adaptive quality exists but is untested on a slow device.
+11. The player chunk is 1.27 MB (352 kB gzip): three.js, drei, postprocessing, camera-controls. Loaded lazily; a
+    manual chunk split is a Phase 5 performance item if needed.
+12. Live-mode model URLs are cross-origin (Supabase Storage). Loading them in the browser relies on the bucket's CORS
+    headers; never exercised yet because mock mode serves same-origin /api/files. Confirm in Phase 5.
 
 ## Additions beyond the spec
 
@@ -134,5 +229,9 @@ Branch `phase-2-backend` (pushed; not merged into `main`).
 - Kid-friendly error messages in HR and EN with stable error codes (`docs/API_NOTES.md` §4.1).
 - Per-clip credit degradation and in-memory reservations in the credit guard.
 - `docs/API_NOTES.md` §4: the backend API contract with a real response example.
+- Player: emotion bubbles above characters, free orbit while paused, keyboard shortcuts, full screen, screen wake
+  lock, `bare` mode (looping backdrop), text fallback without WebGL, loading state on the Play button.
+- `/dev/player` route and the Playwright tools `npm run shots`, `npm run playthrough`, `scripts/story-check.mjs`.
+- Bundled stories that play with no backend (`/s/mock-robot`, `/s/mock-star`).
 
 PHASE 2 DONE

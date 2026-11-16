@@ -3,6 +3,8 @@ import type { Lang } from '../../api/types'
 const hr = {
   storyLabel: 'Priča',
   play: 'Pokreni priču',
+  loading: 'Likovi stižu…',
+  noWebgl: 'Ovaj uređaj ne može prikazati 3D pozornicu. Evo priče za čitanje:',
   theEnd: 'Kraj',
   replay: 'Pogledaj ponovno',
   share: 'Podijeli',
@@ -28,6 +30,8 @@ export type PlayerStrings = typeof hr
 const en: PlayerStrings = {
   storyLabel: 'A story',
   play: 'Play the story',
+  loading: 'The cast is arriving…',
+  noWebgl: 'This device cannot show the 3D stage. Here is the story to read:',
   theEnd: 'The End',
   replay: 'Watch again',
   share: 'Share',

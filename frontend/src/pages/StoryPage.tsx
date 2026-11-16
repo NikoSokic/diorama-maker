@@ -19,24 +19,24 @@ export function StoryPage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    let timer: ReturnType<typeof setTimeout> | undefined
+    const poll: { timer?: ReturnType<typeof setTimeout> } = {}
     const load = async () => {
       try {
         const next = await getStory(slug, controller.signal)
         if (controller.signal.aborted) return
         setLoaded({ slug, story: next })
-        if (next.status !== 'READY' && next.status !== 'FAILED') timer = setTimeout(() => void load(), POLL_MS)
+        if (next.status !== 'READY' && next.status !== 'FAILED') poll.timer = setTimeout(() => void load(), POLL_MS)
       } catch (cause) {
         if (controller.signal.aborted) return
         // The story may simply not be reachable for a moment; keep trying unless it does not exist.
-        if (cause instanceof ApiFailure && cause.status !== 404) timer = setTimeout(() => void load(), POLL_MS * 2)
+        if (cause instanceof ApiFailure && cause.status !== 404) poll.timer = setTimeout(() => void load(), POLL_MS * 2)
         setLoaded({ slug, error: cause instanceof Error ? cause.message : 'Error' })
       }
     }
     void load()
     return () => {
       controller.abort()
-      clearTimeout(timer)
+      clearTimeout(poll.timer)
     }
   }, [slug])
 
