@@ -310,7 +310,19 @@ Nullable = `{"type": ["string", "null"]}`.
 
 **Silently stripped (not enforced):** `minLength`, `maxLength`, `minProperties`, `maxProperties`, `uniqueItems`, `contains`.
 → narration ≤ 160 chars, hex colour format, unique character keys, `targetKey` referencing a real character etc. **must be validated and clamped in Java**.
-Very large / deeply nested schemas can be rejected with `400 INVALID_ARGUMENT` — keep the StoryPlan schema flat.
+**Schema complexity limit (measured 2026-11-16, `gemini-3.5-flash-lite`, both endpoints).** Gemini compiles the schema into a
+grammar. The StoryPlan schema with `minItems`/`maxItems` on its arrays (scenes → actions / props) was rejected:
+Interactions `400 invalid_request: "The specified schema produces a constraint that has too many states for serving"`,
+legacy `400 INVALID_ARGUMENT` with no detail. Removing only the numeric `minimum`/`maximum` did not help; removing the
+**array length limits** did. `PlanSchema` therefore sends structure + enums only (no array limits, no numeric bounds);
+counts and ranges are stated in the instruction and enforced by `PlanValidator`. With that schema both endpoints answer
+in ~3.5 s with a complete plan.
+
+- The backend falls back to the offline planner when Gemini rejects a request, so this failure is **silent** in the UI:
+  look for `plan.source` (`gemini` | `offline`) in `GET /api/stories/{slug}` and for the `GeminiClient` WARN line, which
+  now includes Gemini's error message.
+- After any change to `PlanSchema.java` run `npm run try:plan` (sends the exact instruction + schema to both endpoints;
+  free tier, no Tripo credits). `PlanSchemaTest` keeps the forbidden keywords out.
 
 ### 2.4 Safety
 
@@ -354,7 +366,9 @@ Location: Dashboard → **Settings → API Keys**. Send new keys in the `apikey`
 Free plan: 1 GB storage, 50 MB max file size, and projects **pause after ~1 week without activity** (un-pause in the dashboard).
 A 10k-face textured GLB is ~1–4 MB, so ≈ 250+ models fit.
 
-Object layout: `models/{promptHash}/base.glb`, `models/{promptHash}/rigged.glb`, `models/{promptHash}/anim-{name}.glb`, `models/{promptHash}/thumb.png`.
+Object layout: `models/{promptHash}/base.glb`, `models/{promptHash}/rigged.glb`, `models/{promptHash}/anim.glb`
+(one GLB with all retargeted clips), `models/{promptHash}/thumb.png|jpg|webp`. `promptHash` = sha256 of
+source (mock/live) + model version + face limit + texture quality + normalized prompt.
 
 ### 3.3 Postgres
 
@@ -371,3 +385,134 @@ SUPABASE_DB_PASSWORD=<database password>
 - Session pooler has a small client limit on the free plan → Hikari `maximum-pool-size: 5`.
 - Flyway runs against the `public` schema as the `postgres` role. The tables are only touched by the backend via JDBC,
   so migrations will `ENABLE ROW LEVEL SECURITY` with no policies (blocks the auto-generated REST API for anon keys).
+
+---
+
+## 4. Our backend API (contract for the frontend)
+
+Base: `http://localhost:8080` (Vite proxies `/api`). JSON, UTF-8, `null` fields are omitted. Checked against a running
+backend on 2026-11-16 (live Gemini, mock Tripo).
+
+| Method | Path | Answer |
+|---|---|---|
+| `POST` | `/api/stories` | body `{"text": "...", "lang": "hr" \| "en"}` → **202** `{"slug": "t77rnmvrz", "status": "ANALYZING"}` |
+| `GET` | `/api/stories/{slug}` | story view (below), `Cache-Control: no-store` — poll every 2 s until `READY` / `FAILED` |
+| `GET` | `/api/stories?limit=12` | gallery items, newest first (`limit` 1–48) |
+| `GET` | `/api/health` | `{"status": "ok", "tripoMode": "mock" \| "live", "plannerMode": "mock" \| "live"}` |
+| `GET` | `/api/credits` | Tripo balance + costs; loopback callers or `X-Admin-Token` only |
+| `GET` | `/api/files/**` | model files in local-storage mode (`model/gltf-binary`, cached 1 h) |
+
+`lang` is optional (falls back to `Accept-Language`, then `hr`). Text is 1–500 characters after trimming.
+
+### 4.1 Errors
+
+Every error is `{"code": "...", "message": "..."}`; `message` is kid-friendly and already in the request language
+(`lang` of the story, else `Accept-Language`). Translate by `code` if the UI wants its own wording.
+
+| Code | HTTP | When |
+|---|---|---|
+| `INVALID_TEXT` | 400 | empty or longer than 500 characters |
+| `INVALID_REQUEST` | 400 | unreadable JSON, wrong content type, bad parameter |
+| `TOO_LARGE` | 413 | request body over 16 KB |
+| `RATE_LIMITED` | 429 | more than `MAX_STORIES_PER_IP_PER_DAY` stories in 24 h (loopback is exempt in development) |
+| `CREDITS_EXHAUSTED` | 503 | Tripo balance cannot pay for even one model |
+| `BUSY` | 503 | pipeline queue is full |
+| `NOT_FOUND` | 404 | unknown slug or path |
+| `FORBIDDEN` | 403 | `/api/credits` from outside without the admin token |
+| `INTERNAL` | 500 | anything unexpected |
+
+A story that fails **after** it was accepted is reported in the story view instead: `status: "FAILED"`, `errorCode`
+(`UNSAFE_CONTENT`, `INTERRUPTED` = backend restarted mid-generation, `INTERNAL`) and `error` (message in the story language).
+
+### 4.2 Story view — `GET /api/stories/{slug}`
+
+```json
+{
+  "slug": "t77rnmvrz",
+  "status": "READY",
+  "progress": 100,
+  "lang": "en",
+  "text": "A brave little penguin wanted to see the desert. ...",
+  "title": "Penguin In The Desert",
+  "createdAt": "2026-11-16T04:45:35.940958Z",
+  "plan": {
+    "title": "Penguin In The Desert",
+    "language": "en",
+    "mood": "adventurous",
+    "palette": ["#F4A261", "#E76F51", "#2A9D8F"],
+    "source": "gemini",
+    "characters": [
+      { "key": "penguin", "displayName": "Penguin", "kind": "biped", "relativeSize": 0.8, "tripoPrompt": "cute stylized low-poly toy penguin, ..." }
+    ],
+    "scenes": [
+      {
+        "environment": "desert", "timeOfDay": "day", "weather": "clear",
+        "narration": "A friendly camel offered to carry her across the golden dunes.",
+        "durationSec": 8.0,
+        "camera": { "type": "follow", "targetKey": "camel" },
+        "actions": [
+          { "characterKey": "camel", "type": "enter", "to": { "x": 2.0, "z": 0.0 }, "startAt": 0.0, "duration": 2.0, "emotion": "happy" },
+          { "characterKey": "penguin", "type": "walk_to", "to": { "x": -1.5, "z": 0.0 }, "startAt": 2.5, "duration": 4.0, "emotion": "excited" }
+        ],
+        "props": [ { "type": "cactus", "x": -4.0, "z": 3.0, "scale": 1.2 } ]
+      }
+    ]
+  },
+  "characters": [
+    {
+      "key": "penguin", "displayName": "Penguin", "kind": "biped",
+      "status": "READY", "progress": 100,
+      "model": {
+        "glbUrl": "/api/files/df65.../base.glb",
+        "riggedGlbUrl": "/api/files/df65.../rigged.glb",
+        "rigged": true, "rigType": "biped",
+        "animations": [
+          { "name": "walk", "clip": "Walking", "url": "/api/files/df65.../anim.glb" },
+          { "name": "idle", "clip": "Idle", "url": "/api/files/df65.../anim.glb" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+- `status`: `ANALYZING` (no `plan` yet, `characters` empty) → `GENERATING_MODELS` (plan present, per-character progress) →
+  `READY` | `FAILED`. `progress` (0–100) is one number for the whole story and never goes backwards.
+- `characters[]` is in plan order. Character `status`: `PENDING` → `GENERATING` → `RIGGING` → `READY`, or
+  **`PLACEHOLDER`** (no `model`; `error` = `NO_CREDITS` | `CONTENT_POLICY` | `TIMEOUT` | `GENERATION_FAILED`): the player must
+  draw the procedural blob character, tinted with the palette. A story with placeholders is still `READY`.
+- `model.glbUrl` is always the static model. `model.animations[]` is empty for unrigged models → procedural animation.
+  All clips of one model live in **one GLB** (`url` is the same for each); `clip` is the name of the clip inside that file,
+  `name` is our stable name: `walk`, `idle`, `run`, `jump`, `celebrate` (bipeds) / `walk` only (quadrupeds). When
+  `animations` is non-empty, load that GLB instead of `glbUrl`. `thumbnailUrl` is present only for live Tripo models.
+- URLs are absolute (Supabase) in live mode and root-relative (`/api/files/...`) in mock mode — use them as they are.
+- Plan details the player can rely on (repaired by `PlanValidator`): 1–3 characters, 3–6 scenes, `durationSec` 5–12,
+  grid `x`/`z` ∈ [-5, 5], every action ends inside its scene, `characterKey` / `targetKey` always name a real character.
+  Optional fields: `camera.targetKey` (absent for some `wide` shots), `action.to` (movement actions always have it),
+  `action.targetKey` (`look_at`), `props` (may be empty), `prop.scale`.
+- Enums: `mood` cozy | adventurous | funny | mysterious | magical · `kind` biped | quadruped | creature | object ·
+  `environment` meadow | forest | beach | sea | castle | village | snowy_mountain | space | underwater | cave | desert | city_park ·
+  `timeOfDay` morning | day | sunset | night · `weather` clear | rain | snow | fog | stars | fireflies ·
+  `camera.type` wide | closeup | orbit | follow | dolly_in | over_shoulder ·
+  `action.type` enter | exit | walk_to | run_to | jump | spin | wave | dance | idle | look_at | grow | shrink | hide | appear | celebrate ·
+  `emotion` neutral | happy | sad | scared | surprised | angry | excited | sleepy ·
+  `prop.type` tree | pine | bush | rock | flower | mushroom | house | tent | campfire | bench | fence | lantern | ball | balloon |
+  gift | cake | treasure_chest | boat | bridge | signpost | star | crystal | snowman | cactus | shell | rocket.
+- `plan.source`: `gemini` or `offline` (keyword-based stand-in used when Gemini is unreachable or `GEMINI_MODE=mock`).
+  Offline plans are playable by link but never listed in the gallery (they were not moderated by the LLM).
+
+### 4.3 Gallery item — `GET /api/stories`
+
+```json
+[{ "slug": "t77rnmvrz", "title": "Penguin In The Desert", "mood": "adventurous", "palette": ["#F4A261", "#E76F51", "#2A9D8F"],
+   "environment": "desert", "characters": ["Penguin", "Camel"], "createdAt": "2026-11-16T04:45:35.940958Z" }]
+```
+
+`thumbnailUrl` is added when a character has a live Tripo render; otherwise draw a card from `palette` + `environment`.
+
+### 4.4 Mock mode for frontend work
+
+`TRIPO_MODE=mock` (default) serves four bundled CC0 GLBs by `kind` after a fake delay (~6 s generate, ~3 s per rig step):
+`biped.glb` (rigged, clips Walking / Idle / Running / Jump / Dance), `quadruped.glb` (rigged, clip Walk),
+`creature.glb` and `object.glb` (static). A full story takes ~25 s, which is what the progress screen should be built against.
+`GEMINI_MODE=mock` (or no key) switches the planner to the offline one, so the whole app runs with no network at all.

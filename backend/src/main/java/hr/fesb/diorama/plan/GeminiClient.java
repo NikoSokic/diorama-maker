@@ -110,7 +110,7 @@ public class GeminiClient {
 		if (response.status() == 401 || response.status() == 403) {
 			throw new UnavailableException("Gemini rejected the API key (HTTP " + response.status() + ")");
 		}
-		log.warn("Gemini Interactions API answered HTTP {}, trying generateContent", response.status());
+		log.warn("Gemini Interactions API answered HTTP {} ({}), trying generateContent", response.status(), reason(answer));
 		return null;
 	}
 
@@ -134,7 +134,7 @@ public class GeminiClient {
 		}
 		JsonNode answer = parse(response);
 		if (!response.ok()) {
-			throw new UnavailableException("Gemini answered HTTP " + response.status());
+			throw new UnavailableException("Gemini answered HTTP " + response.status() + " (" + reason(answer) + ")");
 		}
 		String blockReason = answer.path("promptFeedback").path("blockReason").asText("");
 		JsonNode candidate = answer.path("candidates").path(0);
@@ -178,6 +178,21 @@ public class GeminiClient {
 			}
 		}
 		return text.toString();
+	}
+
+	/**
+	 * Gemini's own explanation of an error, shortened for the log. It describes the request (never the key,
+	 * which only travels in a header), and without it a rejected schema is impossible to diagnose.
+	 */
+	static String reason(JsonNode answer) {
+		JsonNode error = answer.path("error");
+		String status = error.path("status").asText(error.path("code").asText(""));
+		String message = error.path("message").asText("").replaceAll("\\s+", " ").strip();
+		String reason = (status + (status.isEmpty() || message.isEmpty() ? "" : ": ") + message).strip();
+		if (reason.isEmpty()) {
+			return "no error details";
+		}
+		return reason.length() > 400 ? reason.substring(0, 400) + "…" : reason;
 	}
 
 	private Http.Response post(String url, JsonNode body, boolean interactions) throws IOException {

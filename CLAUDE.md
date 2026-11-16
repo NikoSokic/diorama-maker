@@ -5,7 +5,7 @@ Story (≤500 chars, HR/EN) → Gemini StoryPlan → Tripo3D models → animated
 ## Read first, every session
 1. `PROGRESS.md` — current phase, decisions, open questions. Start there, not from the code.
 2. `docs/DIORAMA_SPEC.md` — full spec (only the section for the current phase).
-3. `docs/API_NOTES.md` — exact Tripo v3 / Gemini / Supabase endpoints, params, preset names, credit costs. Never guess an API shape; if the notes are missing something, read the official docs and update the notes.
+3. `docs/API_NOTES.md` — exact Tripo v3 / Gemini / Supabase endpoints, params, preset names, credit costs. Never guess an API shape; if the notes are missing something, read the official docs and update the notes. §4 is our own backend API (the contract the frontend builds against) — keep it in sync with the controllers.
 
 ## Hard rules
 - **Mock mode by default.** `TRIPO_MODE=mock` for all development and all tests. Live Tripo calls (real credits) only in Phase 5 or when the owner explicitly asks; check the balance first and stay inside it. Tests must never call a real external API.
@@ -34,6 +34,7 @@ bruno/      manual Tripo API collection (secret var lives in Bruno, not in git)
 | What | Command |
 |---|---|
 | Verify keys | `npm run verify` (or `verify:tripo`, `verify:gemini`, `verify:supabase`) from the repo root |
+| Check the Gemini plan schema live | `npm run try:plan` (after `mvnw test "-Dtest=PlanSchemaTest"`; free tier, run after every `PlanSchema.java` change) |
 | Backend build + tests | `cd backend; .\mvnw.cmd -q -B verify` |
 | Backend run | `cd backend; .\mvnw.cmd spring-boot:run` → http://localhost:8080 (loads `../.env` itself) |
 | Frontend dev | `cd frontend; npm run dev` → http://localhost:5173 (proxies `/api` to 8080) |

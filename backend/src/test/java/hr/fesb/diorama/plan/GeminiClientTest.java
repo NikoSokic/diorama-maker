@@ -41,6 +41,26 @@ class GeminiClientTest {
 		return client.generate("SYSTEM RULES", "the story", PlanSchema.schema());
 	}
 
+	/** The two error shapes recorded on 2026-11-16 when Gemini refused the StoryPlan schema (API_NOTES §2.3). */
+	@Test
+	void aRejectedSchemaIsExplainedInTheErrorSoTheSilentFallbackCanBeDiagnosed() throws Exception {
+		server.on("POST", INTERACTIONS, Reply.json(400, """
+				{"error":{"code":"invalid_request","message":"The specified schema produces a constraint\\n that has too many states for serving."}}
+				"""));
+		server.on("POST", LEGACY, Reply.json(400, """
+				{"error":{"code":400,"message":"Request contains an invalid argument.","status":"INVALID_ARGUMENT"}}
+				"""));
+
+		assertThatThrownBy(this::generate).isInstanceOf(GeminiClient.UnavailableException.class)
+			.hasMessage("Gemini answered HTTP 400 (INVALID_ARGUMENT: Request contains an invalid argument.)")
+			.hasMessageNotContaining(KEY);
+		assertThat(GeminiClient.reason(json.readTree("""
+				{"error":{"code":"invalid_request","message":"The specified schema produces a constraint\\n that has too many states for serving."}}
+				"""))).isEqualTo("invalid_request: The specified schema produces a constraint that has too many states for serving.");
+		assertThat(GeminiClient.reason(json.createObjectNode())).isEqualTo("no error details");
+		assertThat(GeminiClient.reason(json.readTree("{\"error\":{\"message\":\"" + "x".repeat(900) + "\"}}"))).hasSize(401);
+	}
+
 	@Test
 	void readsTheModelOutputOfTheInteractionsApi() throws Exception {
 		server.on("POST", INTERACTIONS, Reply.json(200, INTERACTION_ANSWER));

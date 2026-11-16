@@ -10,7 +10,8 @@
     "verify": "node scripts/verify-all.mjs",
     "verify:tripo": "node scripts/verify-tripo.mjs",
     "verify:gemini": "node scripts/verify-gemini.mjs",
-    "verify:supabase": "node scripts/verify-supabase.mjs"
+    "verify:supabase": "node scripts/verify-supabase.mjs",
+    "try:plan": "node scripts/try-gemini-plan.mjs"
   },
   "dependencies": {
     "pg": "^8.13.0"

@@ -23,6 +23,12 @@ import hr.fesb.diorama.plan.StoryPlan.Weather;
  * and legacy generateContent enforce (API_NOTES §2.3) and is kept shallow: action targets are flat
  * {@code toX}/{@code toZ}. Everything Gemini does not enforce (lengths, references, hex colours) is repaired
  * by {@link PlanValidator}.
+ *
+ * <p>The schema carries structure and enums only. Gemini compiles it into a grammar and rejects the whole
+ * request with HTTP 400 "too many states for serving" when array length limits ({@code minItems} /
+ * {@code maxItems}) are present on these nested arrays (measured 2026-11-16 on both endpoints), so counts and
+ * numeric ranges are stated in the instruction and enforced by {@link PlanValidator}. After changing this
+ * class, check it against the real API with {@code npm run try:plan}.
  */
 public final class PlanSchema {
 
@@ -87,31 +93,31 @@ public final class PlanSchema {
 				"key", string("lowercase ASCII id"),
 				"displayName", string("name in the story language"),
 				"kind", enumOf(Kind.values()),
-				"relativeSize", number(0.3, 3),
+				"relativeSize", number(),
 				"tripoPrompt", string("English, in the required pattern"));
 		ObjectNode action = object(
 				"characterKey", string(null),
 				"type", enumOf(ActionType.values()),
-				"toX", number(-5, 5),
-				"toZ", number(-5, 5),
+				"toX", number(),
+				"toZ", number(),
 				"targetKey", string("character key to look at"),
-				"startAt", number(0, 12),
-				"duration", number(0.3, 12),
+				"startAt", number(),
+				"duration", number(),
 				"emotion", enumOf(Emotion.values()));
 		action.set("required", array("characterKey", "type", "startAt", "duration", "emotion"));
 		ObjectNode camera = object("type", enumOf(CameraType.values()), "targetKey", string(null));
 		camera.set("required", array("type"));
-		ObjectNode prop = object("type", enumOf(PropType.values()), "x", number(-5, 5), "z", number(-5, 5), "scale", number(0.5, 2));
+		ObjectNode prop = object("type", enumOf(PropType.values()), "x", number(), "z", number(), "scale", number());
 		prop.set("required", array("type", "x", "z"));
 		ObjectNode scene = object(
 				"environment", enumOf(Environment.values()),
 				"timeOfDay", enumOf(TimeOfDay.values()),
 				"weather", enumOf(Weather.values()),
 				"narration", string("at most 160 characters, story language"),
-				"durationSec", number(5, 12),
+				"durationSec", number(),
 				"camera", camera,
-				"actions", list(action, 1, 8),
-				"props", list(prop, 0, 4));
+				"actions", list(action),
+				"props", list(prop));
 		scene.set("required", array("environment", "timeOfDay", "weather", "narration", "durationSec", "camera", "actions"));
 
 		ObjectNode root = object(
@@ -120,9 +126,9 @@ public final class PlanSchema {
 				"title", string(null),
 				"language", enumOf("hr", "en"),
 				"mood", enumOf(Mood.values()),
-				"palette", list(string("hex colour like #F6C28B"), 3, 3),
-				"characters", list(character, 1, 3),
-				"scenes", list(scene, 3, 6));
+				"palette", list(string("hex colour like #F6C28B")),
+				"characters", list(character),
+				"scenes", list(scene));
 		root.set("required", array("safeForKids", "title", "language", "mood", "palette", "characters", "scenes"));
 		return root;
 	}
@@ -149,14 +155,16 @@ public final class PlanSchema {
 		return node;
 	}
 
-	private static ObjectNode number(double min, double max) {
-		return F.objectNode().put("type", "number").put("minimum", min).put("maximum", max);
+	/** No minimum/maximum on purpose (see the class comment); ranges are in the instruction and clamped in Java. */
+	private static ObjectNode number() {
+		return F.objectNode().put("type", "number");
 	}
 
-	private static ObjectNode list(JsonNode items, int min, int max) {
+	/** No minItems/maxItems on purpose: nested array limits are what made Gemini reject the schema. */
+	private static ObjectNode list(JsonNode items) {
 		ObjectNode node = F.objectNode().put("type", "array");
 		node.set("items", items);
-		return node.put("minItems", min).put("maxItems", max);
+		return node;
 	}
 
 	private static ObjectNode enumOf(JsonEnum... values) {
