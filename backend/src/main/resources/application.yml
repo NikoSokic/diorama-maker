@@ -41,6 +41,8 @@ diorama:
   trusted-proxy-hops: ${TRUSTED_PROXY_HOPS:1}
   # Loopback callers are exempt from the per-IP story limit unless this is true.
   rate-limit-loopback: ${RATE_LIMIT_LOOPBACK:false}
+  # gallery thumbnails captured by the creator's player (checked by Gemini vision when Gemini is live)
+  thumbnail-uploads: ${THUMBNAIL_UPLOADS:true}
   tripo:
     api-key: ${TRIPO_API_KEY:}
     base-url: ${TRIPO_BASE_URL:https://openapi.tripo3d.ai/v3}

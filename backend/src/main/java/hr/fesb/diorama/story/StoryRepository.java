@@ -19,7 +19,8 @@ public class StoryRepository {
 	public enum CharacterStatus { PENDING, GENERATING, RIGGING, READY, PLACEHOLDER }
 
 	public record StoryRow(UUID id, String slug, String text, String lang, String planJson, StoryStatus status,
-			String error, String errorCode, boolean isPublic, Instant createdAt, String narrationJson) {
+			String error, String errorCode, boolean isPublic, Instant createdAt, String narrationJson, String thumbnailUrl,
+			String uploadTokenHash) {
 	}
 
 	public record CharacterRow(String key, UUID modelId, CharacterStatus status, int progress, String error) {
@@ -60,7 +61,7 @@ public class StoryRepository {
 	public Optional<StoryRow> findBySlug(String slug) {
 		return jdbc.sql("""
 				SELECT id, slug, text, lang, plan::text AS plan, status, error, error_code, is_public, created_at,
-				       narration::text AS narration
+				       narration::text AS narration, thumbnail_url, upload_token_hash
 				FROM stories WHERE slug = :slug
 				""")
 			.param("slug", slug)
@@ -123,6 +124,21 @@ public class StoryRepository {
 			.update();
 	}
 
+	public void setUploadTokenHash(UUID storyId, String hash) {
+		jdbc.sql("UPDATE stories SET upload_token_hash = :hash WHERE id = :id").param("hash", hash).param("id", storyId).update();
+	}
+
+	/** Sets the thumbnail unless the story already has one, and spends the upload token. False when it had one. */
+	public boolean setThumbnailIfMissing(UUID storyId, String url) {
+		return jdbc.sql("""
+				UPDATE stories SET thumbnail_url = :url, upload_token_hash = NULL, updated_at = now()
+				WHERE id = :id AND thumbnail_url IS NULL
+				""")
+			.param("url", url)
+			.param("id", storyId)
+			.update() == 1;
+	}
+
 	public void markReady(UUID storyId) {
 		jdbc.sql("UPDATE stories SET status = 'READY', error = NULL, error_code = NULL, updated_at = now() WHERE id = :id")
 			.param("id", storyId)
@@ -155,9 +171,9 @@ public class StoryRepository {
 	public List<GalleryRow> recentPublic(int limit) {
 		return jdbc.sql("""
 				SELECT s.slug, s.plan::text AS plan, s.created_at,
-				       (SELECT m.thumbnail_url FROM story_characters c JOIN models m ON m.id = c.model_id
+				       COALESCE(s.thumbnail_url, (SELECT m.thumbnail_url FROM story_characters c JOIN models m ON m.id = c.model_id
 				        WHERE c.story_id = s.id AND m.thumbnail_url IS NOT NULL
-				        ORDER BY c.char_key LIMIT 1) AS thumbnail_url
+				        ORDER BY c.char_key LIMIT 1)) AS thumbnail_url
 				FROM stories s
 				WHERE s.is_public AND s.status = 'READY'
 				ORDER BY s.created_at DESC
@@ -172,7 +188,8 @@ public class StoryRepository {
 	private static StoryRow story(ResultSet rs, int row) throws SQLException {
 		return new StoryRow(rs.getObject("id", UUID.class), rs.getString("slug"), rs.getString("text"), rs.getString("lang"),
 				rs.getString("plan"), StoryStatus.valueOf(rs.getString("status")), rs.getString("error"),
-				rs.getString("error_code"), rs.getBoolean("is_public"), instant(rs, "created_at"), rs.getString("narration"));
+				rs.getString("error_code"), rs.getBoolean("is_public"), instant(rs, "created_at"), rs.getString("narration"),
+				rs.getString("thumbnail_url"), rs.getString("upload_token_hash"));
 	}
 
 	private static Instant instant(ResultSet rs, String column) throws SQLException {

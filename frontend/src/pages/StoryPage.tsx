@@ -1,11 +1,11 @@
-﻿import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { ApiFailure, getStory, SAMPLE_GALLERY } from '../api/client'
+import { ApiFailure, getStory, putThumbnail, SAMPLE_GALLERY } from '../api/client'
 import type { StoryView } from '../api/types'
 import { BTN, BTN_GHOST } from '../components/Layout'
 import { StoryCard } from '../components/StoryCard'
 import { useI18n, useTitle } from '../i18n/I18n'
-import { rememberStory } from '../lib/myStories'
+import { rememberStory, spendUploadToken, uploadTokenFor } from '../lib/myStories'
 import { ProgressScreen } from './ProgressScreen'
 
 const Player = lazy(() => import('../player/Player'))
@@ -45,6 +45,17 @@ export function StoryPage() {
     }
   }, [slug])
 
+  // The creator's device sends the gallery picture the first time the story plays.
+  const needsThumbnail = loaded.story?.status === 'READY' && !loaded.story.thumbnailUrl && !!uploadTokenFor(slug)
+  const sendThumbnail = useCallback(
+    (jpeg: Blob) => {
+      const token = uploadTokenFor(slug)
+      if (!token) return
+      void putThumbnail(slug, token, jpeg).then((result) => result === 'done' && spendUploadToken(slug))
+    },
+    [slug],
+  )
+
   // Answers for a previous slug are ignored until the new story arrives.
   const { story, error } = loaded.slug === slug ? loaded : ({ slug } as Loaded)
   const code = error instanceof ApiFailure ? error.code : error ? 'NETWORK' : undefined
@@ -53,7 +64,7 @@ export function StoryPage() {
     return (
       <Suspense fallback={<Notice title={t.player.raising} spinner />}>
         <div className="relative h-full">
-          <Player story={story} uiLang={lang} shareUrl={window.location.href} />
+          <Player story={story} uiLang={lang} shareUrl={window.location.href} onThumbnail={needsThumbnail ? sendThumbnail : undefined} />
           <Link
             to="/"
             className="absolute left-3 top-3 z-30 rounded-full bg-black/35 px-3 py-1.5 text-sm font-bold text-white backdrop-blur hover:bg-black/55"

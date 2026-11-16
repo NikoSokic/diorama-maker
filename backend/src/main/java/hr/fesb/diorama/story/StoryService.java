@@ -1,6 +1,11 @@
 package hr.fesb.diorama.story;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +43,14 @@ public class StoryService {
 	private static final int SLUG_LENGTH = 9;
 	public static final int MAX_GALLERY = 48;
 
-	public record Created(String slug, StoryStatus status) {
+	/** {@code uploadToken}: lets this browser (and only it) send the story's gallery thumbnail once. */
+	public record Created(String slug, StoryStatus status, String uploadToken) {
 	}
 
 	public record StoryView(String slug, StoryStatus status, int progress, String lang, String text, String title,
 			String errorCode, String error, Instant createdAt, JsonNode plan, List<CharacterView> characters,
+			/** The gallery picture, once the creator's player has sent one. */
+			String thumbnailUrl,
 			/** One {@code {url, durationSec}} per scene, or null: then the browser's voice reads the story. */
 			JsonNode narration) {
 	}
@@ -103,6 +111,8 @@ public class StoryService {
 		int limit = exempt ? 0 : props.maxStoriesPerIpPerDay();
 		UUID id = UUID.randomUUID();
 		String slug = insert(id, text, lang, clientIp.hash(address), limit);
+		String uploadToken = newToken();
+		stories.setUploadTokenHash(id, tokenHash(uploadToken));
 		try {
 			storyExecutor.execute(() -> pipeline.run(id, slug, text, lang));
 		}
@@ -110,7 +120,24 @@ public class StoryService {
 			stories.markFailed(id, ApiError.BUSY.name(), ApiError.BUSY.message(lang));
 			throw new ApiException(ApiError.BUSY, lang);
 		}
-		return new Created(slug, StoryStatus.ANALYZING);
+		return new Created(slug, StoryStatus.ANALYZING, uploadToken);
+	}
+
+	private static final SecureRandom RANDOM = new SecureRandom();
+
+	static String newToken() {
+		byte[] bytes = new byte[18];
+		RANDOM.nextBytes(bytes);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
+
+	static String tokenHash(String token) {
+		try {
+			return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private String insert(UUID id, String text, String lang, String ipHash, int limit) {
@@ -140,6 +167,7 @@ public class StoryService {
 				: story.error() != null ? story.error() : errorMessage(story.errorCode(), story.lang());
 		return new StoryView(story.slug(), story.status(), progress(story.status(), characters), story.lang(), story.text(),
 				plan == null ? null : plan.path("title").asText(null), story.errorCode(), error, story.createdAt(), plan, characters,
+				story.thumbnailUrl(),
 				story.status() == StoryStatus.READY ? parse(story.narrationJson()) : null);
 	}
 

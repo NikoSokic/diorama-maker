@@ -51,6 +51,23 @@ export function createStory(text: string, lang: Lang, signal?: AbortSignal): Pro
   })
 }
 
+/**
+ * Sends the story's gallery picture. 'done': stored, or refused for good (already has one, bad image, no such
+ * story); 'retry': anything else (network, server, a proxy or CORS refusal), so the token is kept for a later visit.
+ */
+export async function putThumbnail(slug: string, token: string, jpeg: Blob): Promise<'done' | 'retry'> {
+  try {
+    const response = await fetch(`/api/stories/${encodeURIComponent(slug)}/thumbnail`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'image/jpeg', 'X-Upload-Token': token },
+      body: jpeg,
+    })
+    return response.ok || [400, 404, 409].includes(response.status) ? 'done' : 'retry'
+  } catch {
+    return 'retry'
+  }
+}
+
 /** Public stories, newest first (the backend allows 1–48). */
 export function listStories(limit = 24, signal?: AbortSignal): Promise<GalleryItem[]> {
   return request<GalleryItem[]>(`/api/stories?limit=${Math.min(48, Math.max(1, Math.round(limit)))}`, { signal })

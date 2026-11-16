@@ -24,6 +24,14 @@ public class RequestSizeFilter extends OncePerRequestFilter {
 
 	/** 500 characters as escaped surrogate pairs are about 6 KB of JSON. */
 	static final int MAX_BODY_BYTES = 16 * 1024;
+	/** The one exception: a gallery thumbnail (a small JPEG or PNG), see {@link ThumbnailService}. */
+	static final int MAX_THUMBNAIL_BYTES = ThumbnailService.MAX_UPLOAD_BYTES;
+
+	static int limitFor(HttpServletRequest request) {
+		boolean thumbnail = "PUT".equals(request.getMethod()) && request.getRequestURI() != null
+				&& request.getRequestURI().matches("/api/stories/[A-Za-z0-9]{1,32}/thumbnail");
+		return thumbnail ? MAX_THUMBNAIL_BYTES : MAX_BODY_BYTES;
+	}
 
 	private final ObjectMapper json;
 
@@ -34,7 +42,8 @@ public class RequestSizeFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
-		if (request.getContentLengthLong() > MAX_BODY_BYTES) {
+		int limit = limitFor(request);
+		if (request.getContentLengthLong() > limit) {
 			ApiError error = ApiError.TOO_LARGE;
 			response.setStatus(error.status().value());
 			response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -43,14 +52,17 @@ public class RequestSizeFilter extends OncePerRequestFilter {
 					new ApiExceptionHandler.ErrorBody(error.name(), error.message(ApiExceptionHandler.lang(request))));
 			return;
 		}
-		chain.doFilter(new Limited(request), response);
+		chain.doFilter(new Limited(request, limit), response);
 	}
 
 	/** Bodies sent without a length (chunked) are cut off at the same limit; the JSON parser then reports a bad request. */
 	private static final class Limited extends HttpServletRequestWrapper {
 
-		Limited(HttpServletRequest request) {
+		private final int limit;
+
+		Limited(HttpServletRequest request, int limit) {
 			super(request);
+			this.limit = limit;
 		}
 
 		@Override
@@ -80,8 +92,8 @@ public class RequestSizeFilter extends OncePerRequestFilter {
 
 				private void counted(int bytes) throws IOException {
 					count += bytes;
-					if (count > MAX_BODY_BYTES) {
-						throw new IOException("request body is larger than " + MAX_BODY_BYTES + " bytes");
+					if (count > limit) {
+						throw new IOException("request body is larger than " + limit + " bytes");
 					}
 				}
 

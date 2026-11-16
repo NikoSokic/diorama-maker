@@ -1,4 +1,4 @@
-﻿// Stories created on this device, remembered in localStorage for the "Your stories" shelf.
+// Stories created on this device, remembered in localStorage for the "Your stories" shelf.
 
 import type { Lang } from '../api/types'
 
@@ -7,6 +7,8 @@ export interface MyStory {
   title: string
   lang: Lang
   createdAt: number
+  /** Single-use permission to send this story's gallery picture (only on the device that made it). */
+  uploadToken?: string
 }
 
 const KEY = 'dm.myStories'
@@ -36,7 +38,16 @@ function write(list: MyStory[]) {
 export function rememberStory(story: Omit<MyStory, 'createdAt'> & { createdAt?: number }) {
   const rest = readMyStories().filter((s) => s.slug !== story.slug)
   const prev = readMyStories().find((s) => s.slug === story.slug)
-  write([{ ...story, createdAt: story.createdAt ?? prev?.createdAt ?? Date.now() }, ...rest])
+  write([{ ...prev, ...story, createdAt: story.createdAt ?? prev?.createdAt ?? Date.now() }, ...rest])
+}
+
+export function uploadTokenFor(slug: string): string | undefined {
+  return readMyStories().find((s) => s.slug === slug)?.uploadToken
+}
+
+/** The token is single-use: once the picture was sent (or refused for good) it is dropped. */
+export function spendUploadToken(slug: string) {
+  write(readMyStories().map((s) => (s.slug === slug ? { ...s, uploadToken: undefined } : s)))
 }
 
 export function forgetStory(slug: string) {

@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { ApiFailure, createStory, listStories, SAMPLE_GALLERY } from '../api/client'
 import type { GalleryItem, Lang } from '../api/types'
@@ -80,7 +80,7 @@ export function HomePage() {
     setError(null)
     try {
       const created = await createStory(text, effectiveLang)
-      rememberStory({ slug: created.slug, title: text.trim().slice(0, 48), lang: effectiveLang })
+      rememberStory({ slug: created.slug, title: text.trim().slice(0, 48), lang: effectiveLang, uploadToken: created.uploadToken })
       void navigate(`/s/${created.slug}`)
     } catch (cause) {
       const code = cause instanceof ApiFailure ? cause.code : 'NETWORK'

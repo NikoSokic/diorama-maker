@@ -417,11 +417,16 @@ backend on 2026-11-16 (live Gemini, mock Tripo).
 | `POST` | `/api/stories` | body `{"text": "...", "lang": "hr" \| "en"}` → **202** `{"slug": "t77rnmvrz", "status": "ANALYZING"}` |
 | `GET` | `/api/stories/{slug}` | story view (below), `Cache-Control: no-store` — poll every 2 s until `READY` / `FAILED` |
 | `GET` | `/api/stories?limit=12` | gallery items, newest first (`limit` 1–48) |
+| `PUT` | `/api/stories/{slug}/thumbnail` | raw image + `X-Upload-Token` → **200** `{"thumbnailUrl": "..."}` (4.3b) |
 | `GET` | `/api/health` | `{"status": "ok", "tripoMode": "mock" \| "live", "plannerMode": "mock" \| "live"}` |
 | `GET` | `/api/credits` | Tripo balance + costs; loopback callers or `X-Admin-Token` only |
 | `GET` | `/api/files/**` | model files in local-storage mode (`model/gltf-binary`, cached 1 h) |
 
 `lang` is optional (falls back to `Accept-Language`, then `hr`). Text is 1–500 characters after trimming.
+
+The 202 answer also has `uploadToken` (string): a random single-use token that lets the creating browser send the story's
+gallery picture once (see 4.3b). The backend stores only its sha256; the frontend keeps the token in localStorage with the
+story (`dm.myStories`).
 
 ### 4.1 Errors
 
@@ -503,7 +508,8 @@ A story that fails **after** it was accepted is reported in the story view inste
 - `model.glbUrl` is always the static model. `model.animations[]` is empty for unrigged models → procedural animation.
   All clips of one model live in **one GLB** (`url` is the same for each); `clip` is the name of the clip inside that file,
   `name` is our stable name: `walk`, `idle`, `run`, `jump`, `celebrate` (bipeds) / `walk` only (quadrupeds). When
-  `animations` is non-empty, load that GLB instead of `glbUrl`. `thumbnailUrl` is present only for live Tripo models.
+  `animations` is non-empty, load that GLB instead of `glbUrl`. Character `thumbnailUrl` is present only for live Tripo models.
+- Story-level `thumbnailUrl` (string, optional): the gallery picture, present once the creator's player sent one (see 4.3b).
 - URLs are absolute (Supabase) in live mode and root-relative (`/api/files/...`) in mock mode — use them as they are.
 - Plan details the player can rely on (repaired by `PlanValidator`): 1–3 characters, 3–6 scenes, `durationSec` 5–12,
   grid `x`/`z` ∈ [-5, 5], every action ends inside its scene, `characterKey` / `targetKey` always name a real character.
@@ -528,7 +534,22 @@ A story that fails **after** it was accepted is reported in the story view inste
    "environment": "desert", "characters": ["Penguin", "Camel"], "createdAt": "2026-11-16T04:45:35.940958Z" }]
 ```
 
-`thumbnailUrl` is added when a character has a live Tripo render; otherwise draw a card from `palette` + `environment`.
+`thumbnailUrl` is `COALESCE(story thumbnail, first model render)`; when both are missing, draw a card from `palette` + `environment`.
+
+### 4.3b Gallery picture — `PUT /api/stories/{slug}/thumbnail`
+
+Body: raw `image/jpeg` or `image/png`, max 200 KB (only this path is exempt from the general 16 KB body limit).
+Header `X-Upload-Token: <uploadToken>` (from `POST /api/stories`).
+
+- Rules, checked before the body is read: story is `READY`, has no thumbnail yet, is less than 24 h old, and the token matches.
+- The image is sniffed by magic bytes and must match `Content-Type`; width 160–1920, height 90–1200, aspect 1.2–2.4, checked
+  before decoding. The server redraws it as a 480x270 JPEG (quality 0.82) and stores only that, as `thumbs/<slug>-<random>.jpg`.
+- With Gemini live, the JPEG must pass a vision check (`gemini-3.5-flash-lite` `generateContent`, answer `SAFE` / `UNSAFE`);
+  any error refuses the picture.
+- Answers: **200** `{"thumbnailUrl": "..."}` · 400 `BAD_IMAGE` · 403 `THUMBNAIL_REFUSED` (token, status, age, or
+  `THUMBNAIL_UPLOADS=false`) · 404 `NOT_FOUND` · 409 `THUMBNAIL_EXISTS` · 413 `TOO_LARGE`. The token is spent on success.
+
+CORS allows `GET`, `POST`, `PUT`, `OPTIONS`; `FRONTEND_ORIGIN` may be a comma-separated list of origins (a trailing slash is ignored).
 
 ### 4.4 Mock mode for frontend work
 

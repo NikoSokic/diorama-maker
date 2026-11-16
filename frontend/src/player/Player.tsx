@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } 
 import { NoToneMapping } from 'three'
 import type { Lang, StoryView } from '../api/types'
 import { createPlayerStore, PlayerContext, usePlayer, type PlayerStore, type Quality } from './engine/store'
+import { useThumbnailCapture } from './ui/thumbnail'
 import { useSoundscape } from './audio/useSoundscape'
 import { useNarration } from './narration/useNarration'
 import { Stage } from './Stage'
@@ -28,6 +29,8 @@ export interface PlayerProps {
   bare?: boolean
   /** Called with the store once it exists; lets tests and tools drive the player. */
   onStore?: (store: PlayerStore) => void
+  /** Called once with a 480x270 JPEG of the first settled frame (for the gallery). */
+  onThumbnail?: (jpeg: Blob) => void
 }
 
 const DPR: Record<Quality, [number, number]> = { low: [1, 1], medium: [1, 1.5], high: [1, 1.75] }
@@ -207,13 +210,15 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
   )
 }
 
-export default function Player({ story, uiLang, quality, shareUrl, muted, initial, bare, onStore }: PlayerProps) {
+export default function Player({ story, uiLang, quality, shareUrl, muted, initial, bare, onStore, onThumbnail }: PlayerProps) {
   const store = useMemo(
     () => createPlayerStore(story, { muted: muted ?? bare, quality: quality ?? guessQuality() }),
     // The store belongs to one story; option changes after mount go through the store itself.
     // oxlint-disable-next-line react-hooks/exhaustive-deps
     [story],
   )
+
+  useThumbnailCapture(store, bare ? undefined : onThumbnail)
 
   useEffect(() => {
     onStore?.(store)

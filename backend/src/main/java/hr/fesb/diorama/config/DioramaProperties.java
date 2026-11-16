@@ -18,6 +18,8 @@ public record DioramaProperties(
 		@DefaultValue("1") int trustedProxyHops,
 		/** Apply the per-IP story limit to loopback callers too (off by default so local development is not throttled). */
 		@DefaultValue("false") boolean rateLimitLoopback,
+		/** Accept gallery thumbnails captured by the creator's player (off = painted cards only). */
+		@DefaultValue("true") boolean thumbnailUploads,
 		@DefaultValue Tripo tripo,
 		@DefaultValue Gemini gemini,
 		@DefaultValue Storage storage,

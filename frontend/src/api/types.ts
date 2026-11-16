@@ -174,6 +174,8 @@ export interface StoryView {
   characters: StoryCharacter[]
   /** Generated narrator voice, one clip per scene; absent or null = the browser's voice reads the story. */
   narration?: NarrationClip[] | null
+  /** The gallery picture, once the creator's player has sent one. */
+  thumbnailUrl?: string
 }
 
 export interface NarrationClip {
@@ -185,6 +187,8 @@ export interface NarrationClip {
 export interface CreatedStory {
   slug: string
   status: StoryStatus
+  /** Lets this browser send the story's gallery picture once. */
+  uploadToken?: string
 }
 
 /** One card of `GET /api/stories` (docs/API_NOTES.md §4.3). */

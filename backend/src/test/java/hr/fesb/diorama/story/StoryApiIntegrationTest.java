@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -104,6 +105,32 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 		});
 	}
 
+	@Test
+	void theCreatorsPlayerSendsTheGalleryPictureOnce() throws Exception {
+		JsonNode created = postStory("A fox finds a red kite in the meadow.", "en", null, 202);
+		String slug = created.path("slug").asText();
+		String token = created.path("uploadToken").asText();
+		assertThat(token).hasSizeGreaterThan(20);
+		assertThat(awaitStory(slug).path("thumbnailUrl").asText(null)).isNull();
+		byte[] png = ThumbnailServiceTest.image("png", 960, 540);
+
+		mvc.perform(put("/api/stories/" + slug + "/thumbnail").contentType("image/png").header("X-Upload-Token", "guess").content(png))
+			.andExpect(status().isForbidden());
+		mvc.perform(put("/api/stories/" + slug + "/thumbnail").contentType("image/png").header("X-Upload-Token", token).content(png))
+			.andExpect(status().isOk());
+		String url = getJson("/api/stories/" + slug, 200).path("thumbnailUrl").asText();
+		assertThat(url).startsWith("/api/files/thumbs/" + slug);
+		byte[] served = mvc.perform(get(url)).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+		assertThat(ThumbnailService.sniff(served)).contains("jpeg");
+
+		// the token is spent and the story has its picture
+		mvc.perform(put("/api/stories/" + slug + "/thumbnail").contentType("image/png").header("X-Upload-Token", token).content(png))
+			.andExpect(status().isConflict());
+		// bigger than the thumbnail limit: refused before it is read
+		mvc.perform(put("/api/stories/" + slug + "/thumbnail").contentType("image/png").header("X-Upload-Token", token)
+			.content(new byte[ThumbnailService.MAX_UPLOAD_BYTES + 10]))
+			.andExpect(status().isPayloadTooLarge());
+	}
 	@Test
 	void theSameCharactersAreServedFromTheCacheForFree() throws Exception {
 		String text = "Medvjed i lisica šeću livadom. Lisica maše. Medvjed slavi.";
@@ -243,6 +270,17 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 		mvc.perform(options("/api/stories").header("Origin", "https://evil.example")
 				.header("Access-Control-Request-Method", "POST"))
 			.andExpect(status().isForbidden());
+		// the player's thumbnail upload is a PUT with its own header
+		mvc.perform(options("/api/stories/abc123xyz/thumbnail").header("Origin", "http://localhost:5173")
+				.header("Access-Control-Request-Method", "PUT").header("Access-Control-Request-Headers", "content-type,x-upload-token"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+	}
+
+	@Test
+	void severalFrontendOriginsCanBeConfigured() {
+		assertThat(hr.fesb.diorama.config.CorsConfig.origins(" https://diorama.example/ , http://localhost:5173,"))
+			.containsExactly("https://diorama.example", "http://localhost:5173");
 	}
 
 }
