@@ -1,10 +1,13 @@
-# OPTIONAL: local Postgres for offline development instead of Supabase.
-# The default setup uses Supabase (see .env.example), so Docker is not required.
-# To use this instead, set in .env:
-#   SUPABASE_DB_URL=jdbc:postgresql://localhost:5432/diorama
-#   SUPABASE_DB_USER=diorama
+# The whole app in three containers:  docker compose up --build  →  http://localhost:5173
+#
+# Works with no keys at all: without a .env the backend runs fully offline (TRIPO_MODE=mock, offline story
+# planner, bundled sample models, local Postgres). If a .env exists (copy .env.example), its keys are used -
+# e.g. GEMINI_API_KEY for real story plans - but the database always is the local container below.
+# Live Tripo (TRIPO_MODE=live in .env) spends real credits and also needs the SUPABASE_* storage values.
+#
+# Only the database (offline development without Supabase):  docker compose up postgres
+#   then in .env: SUPABASE_DB_URL=jdbc:postgresql://localhost:5432/diorama, SUPABASE_DB_USER=diorama,
 #   SUPABASE_DB_PASSWORD=diorama
-# The full app compose file (backend + frontend) is added in Phase 5.
 services:
   postgres:
     image: postgres:17
@@ -16,6 +19,41 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - diorama-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diorama -d diorama"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # These win over .env: inside compose the database is always the container above.
+      SUPABASE_DB_URL: jdbc:postgresql://postgres:5432/diorama
+      SUPABASE_DB_USER: diorama
+      SUPABASE_DB_PASSWORD: diorama
+      FRONTEND_ORIGIN: http://localhost:5173
+      # The only way in is the nginx of the frontend container, which sets X-Forwarded-For itself.
+      TRUST_PROXY: "true"
+      TRUSTED_PROXY_HOPS: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - diorama-models:/app/data
+    expose:
+      - "8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:5173:80"
 
 volumes:
   diorama-pgdata:
+  diorama-models:
