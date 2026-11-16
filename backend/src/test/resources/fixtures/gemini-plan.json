@@ -1,0 +1,64 @@
+{
+  "safeForKids": true,
+  "reason": "",
+  "title": "Zec i lisica",
+  "language": "hr",
+  "mood": "funny",
+  "palette": ["#F6C28B", "#8FB996", "#F7E8D0"],
+  "characters": [
+    {
+      "key": "zec",
+      "displayName": "Zec",
+      "kind": "quadruped",
+      "relativeSize": 0.7,
+      "tripoPrompt": "cute stylized low-poly toy white rabbit with long ears, full body, standing neutral pose, arms slightly away from body, single object, no base, no background, soft pastel colors"
+    },
+    {
+      "key": "lisica",
+      "displayName": "Lisica",
+      "kind": "quadruped",
+      "relativeSize": 0.9,
+      "tripoPrompt": "cute stylized low-poly toy orange fox, full body, standing neutral pose, arms slightly away from body, single object, no base, no background, soft pastel colors"
+    }
+  ],
+  "scenes": [
+    {
+      "environment": "forest",
+      "timeOfDay": "morning",
+      "weather": "clear",
+      "narration": "Jednog jutra zec je skakutao šumom.",
+      "durationSec": 6,
+      "camera": { "type": "wide", "targetKey": "zec" },
+      "actions": [
+        { "characterKey": "zec", "type": "enter", "toX": -2, "toZ": 0.5, "startAt": 0, "duration": 2.5, "emotion": "happy" },
+        { "characterKey": "zec", "type": "jump", "startAt": 3, "duration": 1, "emotion": "excited" }
+      ],
+      "props": [{ "type": "tree", "x": -4, "z": -3, "scale": 1.2 }]
+    },
+    {
+      "environment": "forest",
+      "timeOfDay": "day",
+      "weather": "clear",
+      "narration": "Iza grma je izašla lisica i pozdravila ga.",
+      "durationSec": 7,
+      "camera": { "type": "closeup", "targetKey": "lisica" },
+      "actions": [
+        { "characterKey": "lisica", "type": "enter", "toX": 2, "toZ": 0.5, "startAt": 0, "duration": 2.5, "emotion": "happy" },
+        { "characterKey": "lisica", "type": "wave", "startAt": 3, "duration": 1.5, "emotion": "happy" },
+        { "characterKey": "zec", "type": "look_at", "targetKey": "lisica", "startAt": 1, "duration": 0.8, "emotion": "surprised" }
+      ]
+    },
+    {
+      "environment": "forest",
+      "timeOfDay": "sunset",
+      "weather": "fireflies",
+      "narration": "Zajedno su plesali sve do večeri.",
+      "durationSec": 8,
+      "camera": { "type": "orbit", "targetKey": "zec" },
+      "actions": [
+        { "characterKey": "zec", "type": "dance", "startAt": 0.5, "duration": 3, "emotion": "happy" },
+        { "characterKey": "lisica", "type": "celebrate", "startAt": 1, "duration": 3, "emotion": "excited" }
+      ]
+    }
+  ]
+}

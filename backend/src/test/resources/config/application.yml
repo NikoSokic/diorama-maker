@@ -1,0 +1,36 @@
+# Safety net for every test: no real service can be reached even when the developer's .env is loaded.
+# (classpath:/config/ overrides classpath:/ and the .env file imported from there.)
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:1/no-database-configured-for-this-test
+    username: postgres
+    password: ""
+diorama:
+  ip-hash-salt: test-salt
+  admin-token: ""
+  trust-proxy: false
+  rate-limit-loopback: false
+  max-stories-per-ip-per-day: 5
+  tripo:
+    api-key: ""
+    mode: mock
+    base-url: http://127.0.0.1:1/unused
+    enable-rigging: true
+    poll-interval: 10ms
+    max-poll-interval: 20ms
+    retry-backoff: 5ms
+    balance-cache-ttl: 0s
+    mock:
+      generation-time: 60ms
+      animation-time: 30ms
+      balance: 10000
+  gemini:
+    api-key: ""
+    mode: mock
+    base-url: http://127.0.0.1:1/unused
+  storage:
+    mode: local
+    local-dir: target/test-files
+  supabase:
+    url: ""
+    service-key: ""

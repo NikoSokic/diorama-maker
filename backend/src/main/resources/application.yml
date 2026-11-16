@@ -32,6 +32,8 @@ diorama:
   # Optional: protects GET /api/credits when called from a non-local address (X-Admin-Token header).
   admin-token: ${ADMIN_TOKEN:}
   trust-proxy: ${TRUST_PROXY:false}
+  # Loopback callers are exempt from the per-IP story limit unless this is true.
+  rate-limit-loopback: ${RATE_LIMIT_LOOPBACK:false}
   tripo:
     api-key: ${TRIPO_API_KEY:}
     base-url: ${TRIPO_BASE_URL:https://openapi.tripo3d.ai/v3}

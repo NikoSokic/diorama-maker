@@ -14,6 +14,8 @@ public record DioramaProperties(
 		@DefaultValue("") String adminToken,
 		/** Read the client IP from X-Forwarded-For. Only enable behind a trusted reverse proxy. */
 		@DefaultValue("false") boolean trustProxy,
+		/** Apply the per-IP story limit to loopback callers too (off by default so local development is not throttled). */
+		@DefaultValue("false") boolean rateLimitLoopback,
 		@DefaultValue Tripo tripo,
 		@DefaultValue Gemini gemini,
 		@DefaultValue Storage storage,
@@ -36,6 +38,8 @@ public record DioramaProperties(
 			@DefaultValue("6m") Duration taskTimeout,
 			@DefaultValue("30s") Duration requestTimeout,
 			@DefaultValue("30s") Duration balanceCacheTtl,
+			/** First delay of the exponential backoff for retried requests. */
+			@DefaultValue("1s") Duration retryBackoff,
 			@DefaultValue Costs costs,
 			@DefaultValue Mock mock) {
 
@@ -69,7 +73,8 @@ public record DioramaProperties(
 			@DefaultValue("live") String mode,
 			@DefaultValue("gemini-3.5-flash-lite") String model,
 			@DefaultValue("https://generativelanguage.googleapis.com/v1beta") String baseUrl,
-			@DefaultValue("30s") Duration timeout) {
+			@DefaultValue("30s") Duration timeout,
+			@DefaultValue("2s") Duration retryBackoff) {
 
 		/** Mock (offline planner) when asked for, or when there is no key to call Gemini with. */
 		public Mode resolvedMode() {
