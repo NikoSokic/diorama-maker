@@ -4,25 +4,28 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.HexFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.function.Function;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hr.fesb.diorama.config.DioramaProperties;
 import hr.fesb.diorama.model.CreditGuard;
 import hr.fesb.diorama.model.ModelRecord;
 import hr.fesb.diorama.model.ModelRepository;
 import hr.fesb.diorama.plan.PlanValidator;
+import hr.fesb.diorama.plan.StoryPlan;
 import hr.fesb.diorama.story.ApiError.ApiException;
 import hr.fesb.diorama.story.StoryRepository.CharacterRow;
 import hr.fesb.diorama.story.StoryRepository.CharacterStatus;
@@ -123,6 +126,104 @@ public class StoryService {
 		return new Created(slug, StoryStatus.ANALYZING, uploadToken);
 	}
 
+	/** What to change in a finished story. {@code mode}: {@code tweak} (edit the plan) or {@code retry} (plan again). */
+	public record VariantRequest(String mode, String environment, String timeOfDay, String weather) {
+	}
+
+	/**
+	 * A new story made from a finished one. A tweak copies the plan with another place, time of day or weather:
+	 * no language model, the same characters (cached models) and narration (cached clips), so it is counted apart
+	 * from new stories. A retry plans the same text again and counts like a new story. Variants never appear in the
+	 * public gallery (they would be near-copies), but play by link like any story.
+	 */
+	public Created variant(String parentSlug, VariantRequest request, String address, String requestLang) {
+		StoryRow parent = stories.findBySlug(parentSlug == null ? "" : parentSlug)
+			.orElseThrow(() -> new ApiException(ApiError.NOT_FOUND, requestLang));
+		String lang = parent.lang();
+		if (request == null || parent.status() != StoryStatus.READY || parent.planJson() == null) {
+			throw new ApiException(ApiError.INVALID_REQUEST, lang);
+		}
+		boolean exempt = !props.rateLimitLoopback() && ClientIp.isLoopback(address);
+		UUID id = UUID.randomUUID();
+		String slug;
+		Runnable job;
+		if ("retry".equals(request.mode())) {
+			if (!credits.canStartStory()) {
+				throw new ApiException(ApiError.CREDITS_EXHAUSTED, lang);
+			}
+			slug = insert(id, parent.text(), lang, clientIp.hash(address), exempt ? 0 : props.maxStoriesPerIpPerDay(), parent.id(), "retry");
+			String finalSlug = slug;
+			job = () -> pipeline.run(id, finalSlug, parent.text(), lang, false);
+		}
+		else if ("tweak".equals(request.mode())) {
+			StoryPlan plan = tweak(parent.planJson(), request, lang);
+			slug = insert(id, parent.text(), lang, clientIp.hash(address), exempt ? 0 : props.maxTweaksPerIpPerDay(), parent.id(), "tweak");
+			String finalSlug = slug;
+			job = () -> pipeline.runWithPlan(id, finalSlug, lang, plan);
+		}
+		else {
+			throw new ApiException(ApiError.INVALID_REQUEST, lang);
+		}
+		String uploadToken = newToken();
+		stories.setUploadTokenHash(id, tokenHash(uploadToken));
+		try {
+			storyExecutor.execute(job);
+		}
+		catch (TaskRejectedException e) {
+			stories.markFailed(id, ApiError.BUSY.name(), ApiError.BUSY.message(lang));
+			throw new ApiException(ApiError.BUSY, lang);
+		}
+		return new Created(slug, StoryStatus.ANALYZING, uploadToken);
+	}
+
+	/** The parent's plan with the requested place / time / weather in every scene; refuses a request that changes nothing. */
+	StoryPlan tweak(String planJson, VariantRequest request, String lang) {
+		String environment = choice(request.environment(), StoryPlan.Environment.values(), lang);
+		String timeOfDay = choice(request.timeOfDay(), StoryPlan.TimeOfDay.values(), lang);
+		String weather = choice(request.weather(), StoryPlan.Weather.values(), lang);
+		try {
+			ObjectNode plan = (ObjectNode) json.readTree(planJson);
+			boolean changed = false;
+			for (JsonNode node : plan.path("scenes")) {
+				ObjectNode scene = (ObjectNode) node;
+				changed |= set(scene, "environment", environment) | set(scene, "timeOfDay", timeOfDay) | set(scene, "weather", weather);
+				// stars and fireflies only shine at sunset or night (the planner's own rule)
+				String w = scene.path("weather").asText();
+				String t = scene.path("timeOfDay").asText();
+				if ((w.equals("stars") || w.equals("fireflies")) && !(t.equals("night") || t.equals("sunset"))) {
+					scene.put("weather", "clear");
+				}
+			}
+			if (!changed) {
+				throw new ApiException(ApiError.INVALID_REQUEST, lang);
+			}
+			return json.treeToValue(plan, StoryPlan.class);
+		}
+		catch (JsonProcessingException | ClassCastException e) {
+			throw new ApiException(ApiError.INTERNAL, lang);
+		}
+	}
+
+	private static boolean set(ObjectNode scene, String field, String value) {
+		if (value == null || value.equals(scene.path(field).asText())) {
+			return false;
+		}
+		scene.put(field, value);
+		return true;
+	}
+
+	/** Null when not asked for; the lower-case enum name when valid; otherwise a bad request. */
+	private static String choice(String raw, Enum<?>[] values, String lang) {
+		if (raw == null || raw.isBlank()) {
+			return null;
+		}
+		for (Enum<?> value : values) {
+			if (value.name().toLowerCase(Locale.ROOT).equals(raw.trim())) {
+				return raw.trim();
+			}
+		}
+		throw new ApiException(ApiError.INVALID_REQUEST, lang);
+	}
 	private static final SecureRandom RANDOM = new SecureRandom();
 
 	static String newToken() {
@@ -141,10 +242,14 @@ public class StoryService {
 	}
 
 	private String insert(UUID id, String text, String lang, String ipHash, int limit) {
+		return insert(id, text, lang, ipHash, limit, null, null);
+	}
+
+	private String insert(UUID id, String text, String lang, String ipHash, int limit, UUID parentId, String variant) {
 		for (int attempt = 0; attempt < 5; attempt++) {
 			String slug = randomSlug();
 			try {
-				if (!stories.insertIfUnderLimit(id, slug, text, lang, ipHash, limit)) {
+				if (!stories.insertIfUnderLimit(id, slug, text, lang, ipHash, limit, parentId, variant)) {
 					throw new ApiException(ApiError.RATE_LIMITED, lang);
 				}
 				return slug;

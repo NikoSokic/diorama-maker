@@ -59,9 +59,24 @@ public class StoryPipeline {
 	}
 
 	public void run(UUID storyId, String slug, String text, String lang) {
+		run(storyId, slug, text, lang, true);
+	}
+
+	/** @param listable whether a moderated plan may appear in the public gallery (variants never do) */
+	public void run(UUID storyId, String slug, String text, String lang, boolean listable) {
+		produce(storyId, slug, lang, () -> planner.plan(text, lang), listable);
+	}
+
+	/** A tweak: the plan is already made (an edited copy of a finished story's plan), so no language model runs. */
+	public void runWithPlan(UUID storyId, String slug, String lang, StoryPlan plan) {
+		produce(storyId, slug, lang, () -> StoryPlanner.Outcome.ok(plan), false);
+	}
+
+	private void produce(UUID storyId, String slug, String lang, java.util.function.Supplier<StoryPlanner.Outcome> planning,
+			boolean listable) {
 		long started = System.nanoTime();
 		try {
-			StoryPlanner.Outcome outcome = planner.plan(text, lang);
+			StoryPlanner.Outcome outcome = planning.get();
 			if (outcome.rejected()) {
 				stories.markFailed(storyId, ApiError.UNSAFE_CONTENT.name(), ApiError.UNSAFE_CONTENT.message(lang));
 				log.info("story {} rejected as unsafe", slug);
@@ -70,7 +85,7 @@ public class StoryPipeline {
 			StoryPlan plan = outcome.plan();
 			List<String> keys = plan.characters().stream().map(StoryCharacter::key).toList();
 			// a plan made without the LLM was not moderated by it: playable by link, but not in the gallery
-			stories.startGeneration(storyId, json.writeValueAsString(plan), keys, !outcome.fallback());
+			stories.startGeneration(storyId, json.writeValueAsString(plan), keys, listable && !outcome.fallback());
 			// the voice is made while the models are; both are done before the story is READY
 			CompletableFuture<List<NarrationClip>> voice = narration.start(plan);
 			generateModels(storyId, plan);

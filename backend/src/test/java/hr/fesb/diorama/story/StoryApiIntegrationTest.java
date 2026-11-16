@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +42,7 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 	static void settings(DynamicPropertyRegistry registry) {
 		registry.add("spring.datasource.url", () -> DATABASE);
 		registry.add("diorama.storage.local-dir", () -> "target/test-files/api");
+		registry.add("diorama.max-tweaks-per-ip-per-day", () -> "2");
 	}
 
 	@Autowired
@@ -105,6 +107,58 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 		});
 	}
 
+	@Test
+	void aFinishedStoryCanBeTweakedWithoutPlanningOrModellingAgain() throws Exception {
+		JsonNode parent = createAndAwait("Robot i zec su se igrali u šumi. Zec je skočio visoko.", "hr");
+		String slug = parent.path("slug").asText();
+
+		JsonNode created = postVariant(slug, Map.of("mode", "tweak", "environment", "beach", "timeOfDay", "night", "weather", "fireflies"), null, 202);
+		JsonNode tweaked = awaitStory(created.path("slug").asText());
+		assertThat(tweaked.path("status").asText()).isEqualTo("READY");
+		assertThat(created.path("uploadToken").asText()).isNotBlank();
+		assertThat(tweaked.path("plan").path("scenes")).allSatisfy(scene -> {
+			assertThat(scene.path("environment").asText()).isEqualTo("beach");
+			assertThat(scene.path("timeOfDay").asText()).isEqualTo("night");
+			assertThat(scene.path("weather").asText()).isEqualTo("fireflies");
+		});
+		// same characters, same cached models, same story text and narration
+		assertThat(tweaked.path("plan").path("characters")).isEqualTo(parent.path("plan").path("characters"));
+		assertThat(character(tweaked, "robot").path("model")).isEqualTo(character(parent, "robot").path("model"));
+		assertThat(tweaked.path("text").asText()).isEqualTo(parent.path("text").asText());
+
+		// fireflies need the evening: in daylight they become a clear sky
+		JsonNode day = awaitStory(postVariant(created.path("slug").asText(), Map.of("mode", "tweak", "timeOfDay", "day"), null, 202).path("slug").asText());
+		assertThat(day.path("plan").path("scenes")).allSatisfy(scene -> assertThat(scene.path("weather").asText()).isEqualTo("clear"));
+
+		assertThat(postVariant(slug, Map.of("mode", "tweak"), null, 400).path("code").asText()).isEqualTo("INVALID_REQUEST");
+		assertThat(postVariant(slug, Map.of("mode", "tweak", "environment", "moon"), null, 400).path("code").asText()).isEqualTo("INVALID_REQUEST");
+		assertThat(postVariant(slug, Map.of("mode", "paint"), null, 400).path("code").asText()).isEqualTo("INVALID_REQUEST");
+		postVariant("nosuchstory", Map.of("mode", "retry"), null, 404);
+
+		// a retry plans the text again
+		JsonNode retried = awaitStory(postVariant(slug, Map.of("mode", "retry"), null, 202).path("slug").asText());
+		assertThat(retried.path("status").asText()).isEqualTo("READY");
+
+		// variants are near-copies: they play by link but stay out of the gallery
+		Integer listed = jdbc.sql("SELECT count(*) FROM stories WHERE variant IS NOT NULL AND is_public").query(Integer.class).single();
+		assertThat(listed).isZero();
+	}
+
+	@Test
+	void tweaksHaveTheirOwnDailyLimitAndDoNotUseUpStories() throws Exception {
+		String ip = "203.0.113.77";
+		JsonNode created = postStory("A cat naps on a sunny windowsill.", "en", ip, 202);
+		String slug = created.path("slug").asText();
+		awaitStory(slug);
+
+		postVariant(slug, Map.of("mode", "tweak", "weather", "rain"), ip, 202);
+		postVariant(slug, Map.of("mode", "tweak", "weather", "snow"), ip, 202);
+		JsonNode limited = postVariant(slug, Map.of("mode", "tweak", "weather", "fog"), ip, 429);
+		assertThat(limited.path("code").asText()).isEqualTo("RATE_LIMITED");
+
+		// the day's stories are untouched by the tweaks
+		postStory("A dog finds a bone in the garden.", "en", ip, 202);
+	}
 	@Test
 	void theCreatorsPlayerSendsTheGalleryPictureOnce() throws Exception {
 		JsonNode created = postStory("A fox finds a red kite in the meadow.", "en", null, 202);

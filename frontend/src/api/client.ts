@@ -1,7 +1,7 @@
 // Thin client for our own backend (docs/API_NOTES.md §4).
 
 import { findMockStory, MOCK_STORIES } from '../mock/stories'
-import type { ApiError, CreatedStory, GalleryItem, Lang, StoryView } from './types'
+import type { ApiError, CreatedStory, EnvironmentId, GalleryItem, Lang, StoryView, TimeOfDay, Weather } from './types'
 
 export class ApiFailure extends Error {
   readonly code: string
@@ -48,6 +48,22 @@ export function createStory(text: string, lang: Lang, signal?: AbortSignal): Pro
     headers: { 'Content-Type': 'application/json', 'Accept-Language': lang },
     body: JSON.stringify({ text: text.trim(), lang }),
     signal,
+  })
+}
+
+export interface VariantRequest {
+  mode: 'tweak' | 'retry'
+  environment?: EnvironmentId
+  timeOfDay?: TimeOfDay
+  weather?: Weather
+}
+
+/** A new story from a finished one: the same plan in another place / time / weather, or the text planned again. */
+export function createVariant(slug: string, body: VariantRequest, lang: Lang): Promise<CreatedStory> {
+  return request<CreatedStory>(`/api/stories/${encodeURIComponent(slug)}/variants`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept-Language': lang },
+    body: JSON.stringify(body),
   })
 }
 

@@ -10,6 +10,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record DioramaProperties(
 		@DefaultValue("http://localhost:5173") String frontendOrigin,
 		@DefaultValue("5") int maxStoriesPerIpPerDay,
+		/** Tweaks of a finished story (place, time, weather: no language model, cached models) per address per day. */
+		@DefaultValue("20") int maxTweaksPerIpPerDay,
 		@DefaultValue("") String ipHashSalt,
 		@DefaultValue("") String adminToken,
 		/** Read the client IP from X-Forwarded-For. Only enable behind a trusted reverse proxy. */

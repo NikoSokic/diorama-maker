@@ -2,7 +2,7 @@ import './player.css'
 
 import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { NoToneMapping } from 'three'
 import type { Lang, StoryView } from '../api/types'
 import { createPlayerStore, PlayerContext, usePlayer, type PlayerStore, type Quality } from './engine/store'
@@ -31,6 +31,8 @@ export interface PlayerProps {
   onStore?: (store: PlayerStore) => void
   /** Called once with a 480x270 JPEG of the first settled frame (for the gallery). */
   onThumbnail?: (jpeg: Blob) => void
+  /** Shown on the end card under the share buttons (the story page offers its retry / tweak panel there). */
+  endExtra?: ReactNode
 }
 
 const DPR: Record<Quality, [number, number]> = { low: [1, 1], medium: [1, 1.5], high: [1, 1.75] }
@@ -53,7 +55,7 @@ function Soundscape() {
   return null
 }
 
-function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerStore; fixedQuality: boolean; uiLang?: Lang; shareUrl?: string; bare?: boolean }) {
+function Shell({ store, fixedQuality, uiLang, shareUrl, bare, endExtra }: { store: PlayerStore; fixedQuality: boolean; uiLang?: Lang; shareUrl?: string; bare?: boolean; endExtra?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null)
   const quality = usePlayer((s) => s.quality)
   const lang = usePlayer((s) => s.plan.language)
@@ -121,7 +123,9 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
     if (bare) return
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null
-      if (target && /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName) && event.key === ' ') return
+      // Form fields keep their keys (the end card's selects use arrows and letters); buttons keep Space.
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return
+      if (target?.tagName === 'BUTTON' && event.key === ' ') return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       const s = store.getState()
       switch (event.key) {
@@ -202,7 +206,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
           <Subtitles />
           <Controls t={t} visible={active} onFullscreen={canFullscreen ? fullscreen : undefined} />
           <TitleCard t={t} />
-          <EndCard t={t} shareUrl={shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')} />
+          <EndCard t={t} shareUrl={shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')} extra={endExtra} />
         </>
       )}
       <Curtain />
@@ -210,7 +214,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
   )
 }
 
-export default function Player({ story, uiLang, quality, shareUrl, muted, initial, bare, onStore, onThumbnail }: PlayerProps) {
+export default function Player({ story, uiLang, quality, shareUrl, muted, initial, bare, onStore, onThumbnail, endExtra }: PlayerProps) {
   const store = useMemo(
     () => createPlayerStore(story, { muted: muted ?? bare, quality: quality ?? guessQuality() }),
     // The store belongs to one story; option changes after mount go through the store itself.
@@ -230,7 +234,7 @@ export default function Player({ story, uiLang, quality, shareUrl, muted, initia
 
   return (
     <PlayerContext.Provider value={store}>
-      <Shell store={store} fixedQuality={quality !== undefined} uiLang={uiLang} shareUrl={shareUrl} bare={bare} />
+      <Shell store={store} fixedQuality={quality !== undefined} uiLang={uiLang} shareUrl={shareUrl} bare={bare} endExtra={endExtra} />
     </PlayerContext.Provider>
   )
 }

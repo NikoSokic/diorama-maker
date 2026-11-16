@@ -43,11 +43,24 @@ public class StoryRepository {
 	 * @return false when the limit was hit
 	 */
 	public boolean insertIfUnderLimit(UUID id, String slug, String text, String lang, String ipHash, int maxPerDay) {
+		return insertIfUnderLimit(id, slug, text, lang, ipHash, maxPerDay, null, null);
+	}
+
+	/**
+	 * Inserts a story unless this address already made {@code maxPerDay} of the same sort in the last 24 hours.
+	 * Tweaks (a plan edit, no language model, cached models) are counted apart from stories and retries, so
+	 * changing the weather never uses up the day's stories.
+	 *
+	 * @param variant {@code null} for a new story, {@code tweak} or {@code retry}
+	 */
+	public boolean insertIfUnderLimit(UUID id, String slug, String text, String lang, String ipHash, int maxPerDay,
+			UUID parentId, String variant) {
 		return jdbc.sql("""
-				INSERT INTO stories (id, slug, text, lang, status, ip_hash)
-				SELECT :id, :slug, :text, :lang, 'ANALYZING', :ipHash
+				INSERT INTO stories (id, slug, text, lang, status, ip_hash, parent_id, variant)
+				SELECT :id, :slug, :text, :lang, 'ANALYZING', :ipHash, :parent, :variant
 				WHERE :max <= 0 OR (SELECT count(*) FROM stories
-				                    WHERE ip_hash = :ipHash AND created_at > now() - interval '24 hours') < :max
+				                    WHERE ip_hash = :ipHash AND created_at > now() - interval '24 hours'
+				                      AND COALESCE(variant = 'tweak', false) = :tweak) < :max
 				""")
 			.param("id", id)
 			.param("slug", slug)
@@ -55,9 +68,11 @@ public class StoryRepository {
 			.param("lang", lang)
 			.param("ipHash", ipHash)
 			.param("max", maxPerDay)
+			.param("parent", parentId)
+			.param("variant", variant)
+			.param("tweak", "tweak".equals(variant))
 			.update() == 1;
 	}
-
 	public Optional<StoryRow> findBySlug(String slug) {
 		return jdbc.sql("""
 				SELECT id, slug, text, lang, plan::text AS plan, status, error, error_code, is_public, created_at,

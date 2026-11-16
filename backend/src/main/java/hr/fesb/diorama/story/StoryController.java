@@ -47,6 +47,14 @@ public class StoryController {
 		return ResponseEntity.accepted().body(stories.create(body.text(), lang, clientIp.address(request)));
 	}
 
+	/** A new story made from a finished one: {@code tweak} (place / time / weather) or {@code retry} (plan again). */
+	@PostMapping("/{slug}/variants")
+	ResponseEntity<Created> variant(@PathVariable String slug, @RequestBody StoryService.VariantRequest body,
+			HttpServletRequest request) {
+		return ResponseEntity.accepted()
+			.body(stories.variant(slug, body, clientIp.address(request), ApiExceptionHandler.lang(request)));
+	}
+
 	/**
 	 * The gallery picture, captured by the creator's player. Raw JPEG or PNG body (at most 200 KB), the upload token
 	 * from {@code POST /api/stories} in {@code X-Upload-Token}; see {@link ThumbnailService} for the rules.

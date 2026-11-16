@@ -231,7 +231,7 @@ function useFlash(): [boolean, () => void] {
   ]
 }
 
-export function EndCard({ t, shareUrl }: { t: PlayerStrings; shareUrl: string }) {
+export function EndCard({ t, shareUrl, extra }: { t: PlayerStrings; shareUrl: string; extra?: ReactNode }) {
   const store = usePlayerStore()
   const phase = usePlayer((s) => s.phase)
   const title = usePlayer((s) => s.plan.title)
@@ -272,6 +272,7 @@ export function EndCard({ t, shareUrl }: { t: PlayerStrings; shareUrl: string })
             {saved ? t.saved : t.savePicture}
           </button>
         </div>
+        {extra}
       </div>
     </div>
   )

@@ -43,6 +43,19 @@ public abstract class ApiTestSupport {
 		return read(mvc.perform(request).andReturn().getResponse(), expectedStatus);
 	}
 
+	/** {@code POST /api/stories/{slug}/variants} with the given fields, from {@code remoteAddress} (null: this machine). */
+	protected JsonNode postVariant(String slug, Map<String, String> body, String remoteAddress, int expectedStatus) throws Exception {
+		MockHttpServletRequestBuilder request = post("/api/stories/" + slug + "/variants").contentType(MediaType.APPLICATION_JSON)
+			.content(json.writeValueAsBytes(body));
+		if (remoteAddress != null) {
+			request.with(servletRequest -> {
+				servletRequest.setRemoteAddr(remoteAddress);
+				return servletRequest;
+			});
+		}
+		return read(mvc.perform(request).andReturn().getResponse(), expectedStatus);
+	}
+
 	/** Creates a story from this machine (not rate limited) and returns its slug. */
 	protected String createStory(String text, String lang) throws Exception {
 		JsonNode created = postStory(text, lang, null, 202);

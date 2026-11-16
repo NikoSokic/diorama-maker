@@ -418,6 +418,7 @@ backend on 2026-11-16 (live Gemini, mock Tripo).
 | `GET` | `/api/stories/{slug}` | story view (below), `Cache-Control: no-store` — poll every 2 s until `READY` / `FAILED` |
 | `GET` | `/api/stories?limit=12` | gallery items, newest first (`limit` 1–48) |
 | `PUT` | `/api/stories/{slug}/thumbnail` | raw image + `X-Upload-Token` → **200** `{"thumbnailUrl": "..."}` (4.3b) |
+| `POST` | `/api/stories/{slug}/variants` | JSON body → **202** like POST /api/stories (see 4.3c) |
 | `GET` | `/api/health` | `{"status": "ok", "tripoMode": "mock" \| "live", "plannerMode": "mock" \| "live"}` |
 | `GET` | `/api/credits` | Tripo balance + costs; loopback callers or `X-Admin-Token` only |
 | `GET` | `/api/files/**` | model files in local-storage mode (`model/gltf-binary`, cached 1 h) |
@@ -548,6 +549,22 @@ Header `X-Upload-Token: <uploadToken>` (from `POST /api/stories`).
   any error refuses the picture.
 - Answers: **200** `{"thumbnailUrl": "..."}` · 400 `BAD_IMAGE` · 403 `THUMBNAIL_REFUSED` (token, status, age, or
   `THUMBNAIL_UPLOADS=false`) · 404 `NOT_FOUND` · 409 `THUMBNAIL_EXISTS` · 413 `TOO_LARGE`. The token is spent on success.
+
+### 4.3c Retry and tweak — `POST /api/stories/{slug}/variants`
+
+Body `{"mode": "tweak" | "retry", "environment"?, "timeOfDay"?, "weather"?}` (values as in the plan schema, lower case).
+
+- The parent story must be `READY` with a plan; otherwise 400 `INVALID_REQUEST`. Unknown slug: 404.
+- `tweak`: copies the parent's plan and sets the given fields in every scene; stars/fireflies weather becomes clear unless the
+  time is night or sunset. A request that changes nothing, an unknown value or an unknown mode is 400 `INVALID_REQUEST`.
+  No language model runs; the same characters reuse cached models and the same narration text reuses cached clips.
+  Counted separately: `MAX_TWEAKS_PER_IP_PER_DAY` (default 20) per address per 24 h; tweaks do not use up the story limit.
+- `retry`: plans the parent's text again (Gemini); counts against `MAX_STORIES_PER_IP_PER_DAY` like a new story;
+  503 `CREDITS_EXHAUSTED` like a new story.
+- Both create a new story row with `parent_id` and `variant` (`'tweak'` or `'retry'`), answer **202**
+  `{slug, status: "ANALYZING", uploadToken}` and are never listed in the public gallery (near-copies); they play by link.
+  429 `RATE_LIMITED` when the respective limit is reached.
+- DB: migration V5 adds `stories.parent_id` (uuid, references `stories`) and `stories.variant` (text).
 
 CORS allows `GET`, `POST`, `PUT`, `OPTIONS`; `FRONTEND_ORIGIN` may be a comma-separated list of origins (a trailing slash is ignored).
 
