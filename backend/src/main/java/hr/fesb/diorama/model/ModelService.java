@@ -103,7 +103,10 @@ public class ModelService {
 			return join(running);
 		}
 		try {
-			ModelRecord model = generate(hash, prompt, kind, grant, progress);
+			// another thread may have finished this very model between the lookup above and taking the slot;
+			// looking again here is what keeps the same prompt from being paid for twice
+			Optional<ModelRecord> late = models.findByHash(hash).filter(this::usable);
+			ModelRecord model = late.isPresent() ? late.get() : generate(hash, prompt, kind, grant, progress);
 			mine.complete(model);
 			return model;
 		}

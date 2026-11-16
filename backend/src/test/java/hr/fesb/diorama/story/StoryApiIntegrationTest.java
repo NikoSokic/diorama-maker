@@ -148,6 +148,17 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 	}
 
 	@Test
+	void refusesOversizedBodiesButAcceptsTheLongestPossibleStory() throws Exception {
+		JsonNode tooLarge = postStory("a".repeat(RequestSizeFilter.MAX_BODY_BYTES), "en", null, 413);
+		assertThat(tooLarge.path("code").asText()).isEqualTo("TOO_LARGE");
+		// the body is never read, so the language comes from Accept-Language (absent here: Croatian)
+		assertThat(tooLarge.path("message").asText()).isEqualTo("Ovaj zahtjev je prevelik.");
+
+		// 500 emoji are 500 characters but 2000 bytes of UTF-8: the largest story a real client can send
+		assertThat(awaitStory(createStory("🦊".repeat(500), "en")).path("status").asText()).isEqualTo("READY");
+	}
+
+	@Test
 	void unsafeStoriesFailWithAFriendlyMessageAndStayPrivate() throws Exception {
 		JsonNode story = createAndAwait("Vuk je ubio zeca u šumi.", "hr");
 

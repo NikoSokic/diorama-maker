@@ -14,6 +14,8 @@ public record DioramaProperties(
 		@DefaultValue("") String adminToken,
 		/** Read the client IP from X-Forwarded-For. Only enable behind a trusted reverse proxy. */
 		@DefaultValue("false") boolean trustProxy,
+		/** How many reverse proxies in front of the app append to X-Forwarded-For (only read when trustProxy is on). */
+		@DefaultValue("1") int trustedProxyHops,
 		/** Apply the per-IP story limit to loopback callers too (off by default so local development is not throttled). */
 		@DefaultValue("false") boolean rateLimitLoopback,
 		@DefaultValue Tripo tripo,
