@@ -45,6 +45,10 @@ bruno/      manual Tripo API collection (secret var lives in Bruno, not in git)
 | Player visual check | dev server running, then `cd frontend; npm run shots` (PNG + contact sheets in `test-results/shots`; add words to filter: `npm run shots -- desert phone`) |
 | Player end-to-end | dev server running, then `cd frontend; npm run playthrough` (title → end in a real browser); `node scripts/story-check.mjs <slug>` for backend stories |
 | Player on mock data | http://localhost:5173/dev/player?story=mock-robot (options in `src/pages/DevPlayerPage.tsx`), no backend needed |
+| Phase 6 checks (dev server + backend) | `cd frontend; node scripts/audio-check.mjs`, `thumbnail-check.mjs`, `tweak-check.mjs <slug>`, `video-check.mjs <slug> [hr\|en]` (set `BASE_URL` if not :5173) |
+| Rebuild the mock character library | `cd frontend; node scripts/build-mock-library.mjs` (sources in `scripts/mock-library.sources.json`; writes `backend/src/main/resources/mock-models/library`) |
+| Other ports | backend `$env:SERVER_PORT='8081'; $env:FRONTEND_ORIGIN='http://localhost:5174'`, frontend `$env:API_PROXY='http://localhost:8081'; npx vite --port 5174` |
+| CI / deploy | `.github/workflows/ci.yml` runs on every push; hosting steps in `docs/DEPLOY.md` |
 
 ## Environment notes
 - JDK on this machine is 25; the build targets Java 21 (`java.version` in `pom.xml`). Maven comes from the wrapper — no global Maven.

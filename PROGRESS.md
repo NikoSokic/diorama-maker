@@ -10,6 +10,7 @@
 | 3 3D player | done (74 frontend tests, browser-verified) |
 | 4 Product UX (pages, progress screen, gallery, i18n, sharing) | done (79 frontend tests, screenshots checked), branch `phase-4-ux` |
 | 5 Live run & finish | done in mock mode (103 backend + 79 frontend tests, 5 Playwright smoke tests); **live Tripo run NOT done**: balance 0, see NEEDS_OWNER.md |
+| 6 Polish (branch `phase-6-polish`) | all 7 milestones done: character library, sound, Gemini narrator voice, real thumbnails, retry/tweak, video export, CI + deploy prep (backend verify green, 104 frontend tests, 5 smoke tests, CI green on GitHub); deploy itself is the owner's step |
 
 PHASE 1 DONE
 
@@ -31,12 +32,15 @@ PHASE 3 DONE
 
 ## Open risks
 - Live Tripo path only tested against a stub: never run against the real API (0 credits).
-- Docker setup (compose, Dockerfiles, nginx) never built or run: no Docker on this machine.
-- Dev DB has Phase 2 smoke stories; truncate before public demo.
+- Docker setup (compose, Dockerfiles, nginx) and the Render/Netlify deploy never built or run: no Docker here, no accounts.
+- Dev DB has Phase 2 smoke stories and Phase 6 check stories (listed in NEEDS_OWNER.md §7); clean before a public demo.
 - No-key Docker runs always use the offline planner (simpler stories; the waiting screen says so).
+- Sound and voice were verified through player state and a Gemini transcription, never listened to. Video export checked in Chromium only (not Safari/iOS).
+- Gemini free-tier limits for speech are unpublished; heavy use falls back to the browser voice.
+- `TRUSTED_PROXY_HOPS=2` for Netlify -> Render is reasoned, not measured; check after the first deploy.
 
 ## Next step
-All five phases are finished. Left for the owner (NEEDS_OWNER.md): top up Tripo and do the live run, try `docker compose up --build` on a machine with Docker, clean the dev database, merge `phase-5-finish` into main.
+All six phases are finished. Left for the owner (NEEDS_OWNER.md): deploy (docs/DEPLOY.md), top up Tripo for a live run if wanted, clean the dev database, decide how `phase-6-polish` reaches main.
 
 ## Phase 4 log
 
@@ -58,3 +62,17 @@ PHASE 4 DONE
 - Still open: gallery thumbnails are painted, not rendered (needs live models).
 
 PHASE 5 DONE
+
+## Phase 6 log
+
+- 6.1 Character library: 55 CC0 Quaternius models (14.9 MB, `backend/src/main/resources/mock-models/library`, built by `frontend/scripts/build-mock-library.mjs`: mapped clips renamed to idle/walk/run/jump/celebrate, resample + quantize). `MockLibrary` matches EN words on the Tripo prompt subject, then EN words + HR stems on the display name; object vs living ranks first; old 4 samples are the fallback. Pre-animated models skip rigging (`TripoClient.preAnimated`, mock only). Mock cache key includes the manifest hash and the match.
+- 6.2 Sound: synthesised Web Audio (no files): bed per environment, rain/wind/thunder, critters, mood chord, footsteps and action cues; unlock on Play, mute/pause silence, duck 0.3 under the narrator, crossfade between scenes. `window.__dioramaAudio` + `scripts/audio-check.mjs`.
+- 6.3 Narrator voice: Gemini `gemini-3.8-flash-tts` (free tier, voice Kore, style annotation naming the language; flash-lite-tts drifted to Serbian pronunciation in tests). Clips cached in `narration_clips`, one per scene in `stories.narration`, all or nothing; the player plays them through the sound engine with a watchdog and falls back to speechSynthesis.
+- 6.4 Thumbnails: creator's player captures one settled frame; `PUT /api/stories/{slug}/thumbnail` with a single-use upload token (not IP), 200 KB, sniffed + size-checked before decoding, redrawn as 480x270 JPEG, Gemini vision check (fail closed). CORS gained PUT and a comma-separated `FRONTEND_ORIGIN`.
+- 6.5 Retry/tweak: `POST /api/stories/{slug}/variants`; tweak edits the plan (no LLM, cached models and voice, own limit 20/day), retry re-plans (counts as a story); variants never public. Player shortcuts no longer fire in form fields.
+- 6.6 Video: end card records a replay (2D compositor copies each frame + subtitle + curtain fade, engine audio stream), MP4/WebM, cancel on hidden tab, clear unsupported message.
+- 6.7 CI (`.github/workflows/ci.yml`, green) and deploy prep: `render.yaml`, `netlify.toml` + `write-redirects.mjs` (Netlify proxies /api: one origin), `server.port` from `PORT`, `docs/DEPLOY.md`.
+- Decisions: the library lives in the backend (the browser gets models via /api/files, so a frontend copy would only bloat the build); advisor reviews changed four designs (HR stems only on display names, upload token instead of IP hash, Gemini vision gate, recorder ordering and mute handling).
+- Process: an advisor model reviewed plans for milestones 1, 3, 4 and 6; cheaper models did searches and docs.
+
+PHASE 6 DONE

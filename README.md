@@ -1,6 +1,6 @@
 # Diorama Maker
 
-Napiši kratku priču (do 500 znakova, na hrvatskom ili engleskom) i gledaj kako oživi kao mala animirana 3D slikovnica u pregledniku: Gemini od priče napravi scenarij, Tripo3D izradi 3D modele likova, a Three.js odigra predstavu s pripovjedačem, titlovima i kamerom.
+Napiši kratku priču (do 500 znakova, na hrvatskom ili engleskom) i gledaj kako oživi kao mala animirana 3D slikovnica u pregledniku: Gemini od priče napravi scenarij i pripovjedačev glas, Tripo3D izradi 3D modele likova, a Three.js odigra predstavu sa zvukom, titlovima i kamerom.
 
 Sve radi na besplatnim razinama usluga (0 €). Bez ijednog ključa aplikacija radi u *mock* načinu, s ugrađenim primjerima modela.
 
@@ -40,6 +40,16 @@ flowchart LR
     PIPE -->|GLB datoteke| ST[(Supabase Storage<br/>ili lokalni disk)]
     ST -->|GLB modeli| PL
 ```
+
+## Što još zna
+
+- **Pravi likovi i bez Tripa.** U mock načinu backend za svakog lika bira najsličniji od 55 low-poly modela (životinje, ljudi, bića iz bajki, vozila, predmeti; Quaternius, CC0). Bira po opisu lika na engleskom i po imenu lika na hrvatskom ili engleskom, pa lisica, djevojčica i zmaj više nisu isti robot. Modeli već imaju animacije hodanja i mirovanja; ako ništa ne odgovara, ostaju četiri stara primjera.
+- **Zvuk.** Svako mjesto ima tihu pozadinu (vjetar, valovi, šuma), vrijeme donosi kišu, vjetar ili daleku grmljavinu, a uz to su ptice, cvrčci, galebovi, mjehurići, koraci i zvončići za čarobne trenutke. Sve se stvara u kodu (Web Audio), bez zvučnih datoteka. Zvuk kreće tek nakon klika na „Pokreni priču”, poštuje gumb za zvuk, utiša se dok pripovjedač govori i pretapa se između scena.
+- **Pravi glas pripovjedača.** Dok nastaju modeli, backend pripovijest svake scene izgovori Gemini glasom (besplatna razina, `gemini-3.8-flash-tts`, glas Kore) i spremi snimke uz modele. Player ih pušta, a ako snimka ne postoji ili ne krene, scenu čita glas preglednika. Titlovi prate onaj glas koji govori.
+- **Prave sličice u galeriji.** Kad autor prvi put pogleda svoju priču, player snimi jedan kadar i pošalje ga kao sličicu. Server prima samo jednu sliku po priči i samo uz jednokratni ključ koji je dobio preglednik koji je priču napravio. Sliku provjeri, ponovno nacrta kao JPEG 480×270 i, kad je Gemini uključen, provjeri je li prikladna za djecu.
+- **Isprobaj drugačije.** Na kraju priče možeš je vidjeti na drugom mjestu, u drugo doba dana ili po drugom vremenu. To samo mijenja plan, bez Geminija i bez novih modela, pa ima svoje dnevno ograničenje (20). Možeš i tražiti da se priča ponovno osmisli; to se broji kao nova priča.
+- **Preuzmi video.** Gumb na kraju priče još je jednom odigra i snimi u MP4 ili WebM (do 1280×720), sa zvukom i titlovima, bez gumba na ekranu. Preglednici koji to ne mogu dobiju jasnu poruku.
+- **CI i objava.** GitHub Actions na svaki push pokreće sve provjere backenda i frontenda. Postavke za besplatnu objavu (Netlify za frontend, Render za backend, postojeći Supabase) i točni koraci su u [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Tehnologije
 
@@ -94,7 +104,7 @@ Player se može gledati i bez backenda, na ugrađenim pričama: http://localhost
 
 ### Mock i live način
 
-`TRIPO_MODE=mock` je zadana vrijednost: ne zove Tripo i ne troši kredite, a likovi dobivaju ugrađene primjere modela. `TRIPO_MODE=live` troši prave kredite (statični model 20, četveronožac s hodom 55, potpuno animirani dvonožac 95). Prije pokretanja provjeri stanje s `npm run verify:tripo`; backend ionako ne troši više od onoga što je na računu.
+`TRIPO_MODE=mock` je zadana vrijednost: ne zove Tripo i ne troši kredite, a likovi dobivaju najsličniji model iz ugrađene knjižnice (vidi gore). `TRIPO_MODE=live` troši prave kredite (statični model 20, četveronožac s hodom 55, potpuno animirani dvonožac 95). Prije pokretanja provjeri stanje s `npm run verify:tripo`; backend ionako ne troši više od onoga što je na računu.
 
 ## Provjere
 
@@ -104,7 +114,7 @@ cd ..\frontend; npm run build; npm run lint; npm test
 npm run smoke
 ```
 
-`npm run smoke` su Playwright testovi koji u pravom pregledniku prođu put od obrasca preko zaslona čekanja do playera, navigaciju, promjenu jezika i stranice s greškama. Testovi nikad ne zovu vanjske API-je. Uz pokrenut razvojni poslužitelj postoje i `npm run playthrough` (cijela priča u pregledniku) te `npm run shots` (snimke zaslona playera za vizualnu provjeru).
+`npm run smoke` su Playwright testovi koji u pravom pregledniku prođu put od obrasca preko zaslona čekanja do playera, navigaciju, promjenu jezika i stranice s greškama. Testovi nikad ne zovu vanjske API-je. Uz pokrenut razvojni poslužitelj postoje i `npm run playthrough` (cijela priča u pregledniku) te `npm run shots` (snimke zaslona playera za vizualnu provjeru). Uz pokrenut backend: `node scripts/audio-check.mjs` (stanje zvuka i glasa tijekom priče), `scripts/thumbnail-check.mjs` (sličica od obrasca do galerije), `scripts/tweak-check.mjs <slug>` i `scripts/video-check.mjs <slug>` (snimi video i provjeri da se reproducira). Provjere s početka ovog poglavlja pokreće i GitHub Actions (`.github/workflows/ci.yml`).
 
 ## API backenda
 
@@ -113,6 +123,8 @@ npm run smoke
 | `POST` | `/api/stories` | prima `{"text": "...", "lang": "hr" \| "en"}`, vraća `202` i `slug` |
 | `GET` | `/api/stories/{slug}` | stanje priče, napredak po likovima i, kad je gotova, plan i adrese modela |
 | `GET` | `/api/stories?limit=12` | javne priče za galeriju, najnovije prve |
+| `POST` | `/api/stories/{slug}/variants` | nova priča od gotove: `tweak` (mjesto, doba dana, vrijeme) ili `retry` (ponovno osmisli) |
+| `PUT` | `/api/stories/{slug}/thumbnail` | sličica za galeriju (JPEG ili PNG do 200 KB, uz `X-Upload-Token`) |
 | `GET` | `/api/health` | stanje i način rada (mock ili live) |
 | `GET` | `/api/credits` | stanje Tripo kredita; samo lokalno ili uz `X-Admin-Token` |
 | `GET` | `/api/files/**` | modeli s lokalnog diska (mock način) |
@@ -136,7 +148,10 @@ Stanje projekta i odluke: [PROGRESS.md](PROGRESS.md). Specifikacija: [docs/DIORA
 - **Prava (live) Tripo priča još nije odigrana.** Račun ima 0 kredita, a najmanja nadoplata izlazi iz budžeta od 0 €. Live put je pokriven testovima prema lažnom Tripo poslužitelju, ali nije potvrđen na pravom API-ju. Sve snimke zaslona su iz mock načina. Koraci za live pokretanje su u [NEEDS_OWNER.md](NEEDS_OWNER.md).
 - Docker postavke nisu izgrađene na razvojnom računalu (na njemu nema Dockera), pa su provjerene samo čitanjem.
 - Nema korisničkih računa: polica „Tvoje priče” živi u `localStorage` preglednika.
-- Sličice u galeriji crtaju se iz okoliša i palete priče, jer prave sličice traže live Tripo modele.
+- Zvuk i glas pripovjedača provjereni su kroz stanje playera (što svira i kolika je glasnoća dok pripovjedač govori), a ne slušanjem. Hrvatski Gemini glas provjeren je tako da ga je Gemini prepisao natrag u tekst bez uvida u izvornik: prepoznat je kao hrvatski, uz pokoju krivo shvaćenu riječ.
+- Glas preglednika (kad priča nema Gemini glas) ne može se snimiti u video; tada video ima titlove bez pripovjedača. Snimanje videa provjereno je u Chromiumu, ne u Safariju ni na mobitelu.
+- Priče bez sličice (starije, ili one koje autor nije pogledao) i dalje se u galeriji crtaju iz okoliša i palete.
+- Objava na pravu domenu pripremljena je, ali nije napravljena: račune na Netlifyju i Renderu otvara vlasnik ([docs/DEPLOY.md](docs/DEPLOY.md)).
 
 ## Bruno kolekcija
 
@@ -144,4 +159,4 @@ Otvori mapu `bruno/` u Brunu, odaberi environment `local` i u njemu upiši `trip
 
 ## Zasluge
 
-Primjeri modela za mock način su pod licencom CC0 1.0 (robot „RobotExpressive”: Tomás Laulhé i Don McCurdy); izvori su u [frontend/public/mock/CREDITS.md](frontend/public/mock/CREDITS.md).
+Svi modeli za mock način su pod licencom CC0 1.0: knjižnica likova je Quaterniusova (preuzeta s poly.pizza), a robot „RobotExpressive” su napravili Tomás Laulhé i Don McCurdy. Izvor svakog modela je u [frontend/public/mock/CREDITS.md](frontend/public/mock/CREDITS.md). Zvukovi se stvaraju u kodu (vlastiti rad, CC0).
