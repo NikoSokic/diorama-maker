@@ -134,3 +134,5 @@ Branch `phase-2-backend` (pushed; not merged into `main`).
 - Kid-friendly error messages in HR and EN with stable error codes (`docs/API_NOTES.md` §4.1).
 - Per-clip credit degradation and in-memory reservations in the credit guard.
 - `docs/API_NOTES.md` §4: the backend API contract with a real response example.
+
+PHASE 2 DONE

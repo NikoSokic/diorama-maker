@@ -24,5 +24,5 @@ without doing any work. Run one of the two commands before the next unattended n
 ## 3. Before a public demo (Phase 5, not urgent)
 
 - Un-pause the Supabase project if it has been idle for a week.
-- Decide how the phase branches reach `main`: `main` is still at the initial commit; `phase-1-setup` and
-  `phase-2-backend` (which contains Phase 1) are pushed but not merged, and no PR was opened.
+- Decide how the work reaches `main`: `main` is still at the initial commit. `phase-2-backend` (which contains all of
+  Phase 1) is pushed but not merged and has no PR; `phase-1-setup` exists only on this machine.
