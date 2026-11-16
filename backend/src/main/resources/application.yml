@@ -21,6 +21,11 @@ spring:
 
 server:
   shutdown: graceful
+  # Story JSON and locally served models (mock mode) go out gzipped; live models come from the Supabase CDN.
+  compression:
+    enabled: true
+    mime-types: application/json,model/gltf-binary
+    min-response-size: 1024
   error:
     include-message: never
     include-stacktrace: never

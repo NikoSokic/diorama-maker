@@ -15,7 +15,19 @@ const Player = lazy(() => import('../player/Player'))
 
 /** The hero backdrop: a small looping scene. Skipped when the visitor asks for less motion or has no WebGL. */
 function Backdrop() {
-  const [show] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [wanted] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  // The 3D code is over a megabyte: fetch it only once the page itself is up and the browser has a quiet moment.
+  const [idle, setIdle] = useState(false)
+  useEffect(() => {
+    if (!wanted) return
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(() => setIdle(true), { timeout: 1500 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = setTimeout(() => setIdle(true), 300)
+    return () => clearTimeout(id)
+  }, [wanted])
+  const show = wanted && idle
   const { t, lang } = useI18n()
   const story = MOCK_STORIES.find((s) => s.lang === lang) ?? MOCK_STORIES[0]
   return (

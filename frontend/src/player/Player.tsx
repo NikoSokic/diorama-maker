@@ -67,6 +67,16 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
     return () => clearTimeout(idle.current)
   }, [])
 
+  // Nothing is drawn while the player is scrolled out of view (the home page backdrop, mostly).
+  const [inView, setInView] = useState(true)
+  useEffect(() => {
+    const el = root.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   // As a backdrop the story simply starts over when it ends.
   useEffect(() => {
     if (bare && phase === 'ended') store.getState().start()
@@ -161,6 +171,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare }: { store: PlayerS
         <CanvasErrorBoundary fallback={<NoStage t={t} />}>
         <Canvas
           flat
+          frameloop={inView ? 'always' : 'never'}
           shadows={quality === 'low' ? false : 'soft'}
           dpr={DPR[quality]}
           gl={{ antialias: false, powerPreference: 'high-performance', toneMapping: NoToneMapping }}
