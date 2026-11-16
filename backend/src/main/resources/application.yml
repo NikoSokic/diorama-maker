@@ -20,6 +20,8 @@ spring:
     timeout-per-shutdown-phase: 10s
 
 server:
+  # free hosts (Render, Fly, Railway) say which port to listen on in PORT
+  port: ${PORT:8080}
   shutdown: graceful
   # Story JSON and locally served models (mock mode) go out gzipped; live models come from the Supabase CDN.
   compression:

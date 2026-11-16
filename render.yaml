@@ -1,0 +1,43 @@
+# Backend on Render (free web service, Docker). See docs/DEPLOY.md.
+# Values marked sync: false are secrets: Render asks for them when the blueprint is created; they never live here.
+services:
+  - type: web
+    name: diorama-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: TRIPO_MODE
+        value: mock
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: SUPABASE_DB_USER
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      # Render's disk is wiped on every deploy and spin-down: keep files in the Supabase bucket.
+      - key: STORAGE_MODE
+        value: supabase
+      # The site's address (and any preview address), comma-separated. With the Netlify proxy the browser
+      # talks to the same origin, so this only matters for direct calls.
+      - key: FRONTEND_ORIGIN
+        sync: false
+      # Read the visitor's address from X-Forwarded-For, counted from the right: Netlify's proxy appends the
+      # visitor, Render's proxy appends Netlify's address, so the visitor is 2 entries from the right. Calling the
+      # API directly (no Netlify) is 1. Check it after deploying (docs/DEPLOY.md, step 6).
+      - key: TRUST_PROXY
+        value: "true"
+      - key: TRUSTED_PROXY_HOPS
+        value: "2"
+      - key: IP_HASH_SALT
+        generateValue: true
+      - key: ADMIN_TOKEN
+        generateValue: true
