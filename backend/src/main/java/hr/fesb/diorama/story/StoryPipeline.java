@@ -90,8 +90,8 @@ public class StoryPipeline {
 		// reserve credits once per distinct model that is not cached yet
 		Map<String, Kind> missing = new LinkedHashMap<>();
 		for (StoryCharacter character : plan.characters()) {
-			if (models.cached(character.tripoPrompt()).isEmpty()) {
-				missing.putIfAbsent(models.cacheKey(character.tripoPrompt()), character.kind());
+			if (models.cached(character.tripoPrompt(), character.kind(), character.displayName()).isEmpty()) {
+				missing.putIfAbsent(models.cacheKey(character.tripoPrompt(), character.kind(), character.displayName()), character.kind());
 			}
 		}
 		List<Need> needs = missing.entrySet().stream().map(entry -> new Need(entry.getKey(), entry.getValue())).toList();
@@ -99,7 +99,7 @@ public class StoryPipeline {
 		try {
 			List<CompletableFuture<Void>> running = new ArrayList<>();
 			for (StoryCharacter character : plan.characters()) {
-				Grant grant = reservation.grantFor(models.cacheKey(character.tripoPrompt()));
+				Grant grant = reservation.grantFor(models.cacheKey(character.tripoPrompt(), character.kind(), character.displayName()));
 				Runnable job = () -> generateCharacter(storyId, character, grant);
 				try {
 					running.add(CompletableFuture.runAsync(job, modelExecutor));
@@ -138,7 +138,7 @@ public class StoryPipeline {
 			}
 		};
 		try {
-			ModelRecord model = models.obtain(character.tripoPrompt(), character.kind(), grant, progress);
+			ModelRecord model = models.obtain(character.tripoPrompt(), character.kind(), character.displayName(), grant, progress);
 			stories.updateCharacter(storyId, key, CharacterStatus.READY, 100, model.id(), null);
 		}
 		catch (TripoException e) {

@@ -1,0 +1,1690 @@
+{
+ "version": 1,
+ "models": [
+  {
+   "id": "fox",
+   "file": "fox.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "fox",
+    "vixen"
+   ],
+   "hr": [
+    "lisic",
+    "lisac",
+    "lija$"
+   ],
+   "title": "Fox",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/Bc97C66HKi",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "dog",
+   "file": "dog.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "dog",
+    "puppy",
+    "puppies",
+    "doggy",
+    "pup",
+    "hound"
+   ],
+   "hr": [
+    "pas$",
+    "psa$",
+    "psu$",
+    "psi$",
+    "psom$",
+    "psic",
+    "pesek",
+    "kuj",
+    "sten",
+    "kuz"
+   ],
+   "title": "Dog",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/2kUk0QqpCg",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "cat",
+   "file": "cat.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "cat",
+    "kitten",
+    "kitty",
+    "tomcat"
+   ],
+   "hr": [
+    "mack",
+    "macak",
+    "macic",
+    "maca$",
+    "mace$",
+    "macu$",
+    "maci$"
+   ],
+   "title": "Cat",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/qKICY6xla2",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "horse",
+   "file": "horse.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "horse",
+    "pony",
+    "ponies",
+    "stallion",
+    "mare",
+    "foal"
+   ],
+   "hr": [
+    "konj",
+    "poni$",
+    "zdreb",
+    "kobil"
+   ],
+   "title": "Horse",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/D3hAeqeDBE",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "unicorn",
+   "file": "unicorn.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "unicorn",
+    "white horse",
+    "pegasus"
+   ],
+   "hr": [
+    "jednorog",
+    "bijeli konj",
+    "pegaz"
+   ],
+   "title": "White Horse",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/bEdE4rmZy9",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "deer",
+   "file": "deer.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "deer",
+    "stag",
+    "reindeer",
+    "fawn",
+    "elk",
+    "moose",
+    "antelope",
+    "gazelle"
+   ],
+   "hr": [
+    "jelen",
+    "srn",
+    "lane$",
+    "laneta$",
+    "sob$",
+    "soba$",
+    "losa$"
+   ],
+   "title": "Deer",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/T6Cs7tmMHJ",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "wolf",
+   "file": "wolf.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "wolf",
+    "wolves",
+    "husky",
+    "coyote"
+   ],
+   "hr": [
+    "vuk",
+    "vuc",
+    "haski"
+   ],
+   "title": "Wolf",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/XU7oNeKShV",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "cow",
+   "file": "cow.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "cow",
+    "bull",
+    "calf",
+    "ox",
+    "oxen",
+    "cattle",
+    "buffalo"
+   ],
+   "hr": [
+    "krav",
+    "bik$",
+    "bika$",
+    "biku$",
+    "tele$",
+    "telad",
+    "vol$",
+    "vola$",
+    "bivol"
+   ],
+   "title": "Cow",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/5XSc2Fka3F",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "pig",
+   "file": "pig.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "pig",
+    "piglet",
+    "piggy",
+    "hog",
+    "boar"
+   ],
+   "hr": [
+    "svinj",
+    "prase",
+    "prasc",
+    "prasi",
+    "vepr"
+   ],
+   "title": "Pig",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/u35l6uP5vj",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "sheep",
+   "file": "sheep.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "sheep",
+    "lamb",
+    "ram",
+    "goat"
+   ],
+   "hr": [
+    "ovc",
+    "ovan",
+    "janj",
+    "koz",
+    "jarac",
+    "jarc"
+   ],
+   "title": "Sheep",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/rgJXF570ZK",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "alpaca",
+   "file": "alpaca.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "alpaca",
+    "llama",
+    "camel"
+   ],
+   "hr": [
+    "alpak",
+    "lama$",
+    "lame$",
+    "lami$",
+    "lamu$",
+    "dev$",
+    "deva$",
+    "devu$"
+   ],
+   "title": "Alpaca",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/bCVFD48i2l",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "donkey",
+   "file": "donkey.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "donkey",
+    "mule",
+    "burro"
+   ],
+   "hr": [
+    "magar",
+    "mazg",
+    "tovar"
+   ],
+   "title": "Donkey",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/qmX6nhnvp7",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "raccoon",
+   "file": "raccoon.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "raccoon",
+    "badger",
+    "skunk",
+    "otter"
+   ],
+   "hr": [
+    "rakun",
+    "jazav",
+    "tvor",
+    "vidr"
+   ],
+   "title": "Raccoon",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/xMmx6VQP3r",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "hedgehog",
+   "file": "hedgehog.glb",
+   "kind": "quadruped",
+   "clips": [
+    "idle"
+   ],
+   "en": [
+    "hedgehog",
+    "porcupine"
+   ],
+   "hr": [
+    "jez$",
+    "jeza$",
+    "jezu$",
+    "jezom$",
+    "jezev",
+    "jezic",
+    "dikobraz"
+   ],
+   "title": "Hedgehog",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/Uu0PXwt2nU",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "bunny",
+   "file": "bunny.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "rabbit",
+    "bunny",
+    "bunnies",
+    "hare"
+   ],
+   "hr": [
+    "zec",
+    "zek",
+    "zeka$",
+    "kunic"
+   ],
+   "title": "Bunny",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/irZjWFARyl",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "bear",
+   "file": "bear.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "bear",
+    "panda",
+    "teddy",
+    "koala"
+   ],
+   "hr": [
+    "medvjed",
+    "medo$",
+    "meda$",
+    "medu$",
+    "medi",
+    "pand",
+    "koal"
+   ],
+   "title": "Panda",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/q1uJ28Hs8T",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "frog",
+   "file": "frog.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "frog",
+    "toad",
+    "tadpole"
+   ],
+   "hr": [
+    "zab",
+    "krastac",
+    "zapc"
+   ],
+   "title": "Frog",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/37wofOCOzG",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "girl",
+   "file": "girl.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "girl",
+    "princess",
+    "queen",
+    "fairy",
+    "fairies",
+    "ballerina",
+    "bride",
+    "daughter",
+    "sister",
+    "lady"
+   ],
+   "hr": [
+    "djevoj",
+    "curic",
+    "cura$",
+    "cure$",
+    "curu$",
+    "princez",
+    "kraljic",
+    "kraljevn",
+    "vila$",
+    "vile$",
+    "vili$",
+    "vilu$",
+    "vilic",
+    "balerin",
+    "nevjest",
+    "kci$",
+    "kcer",
+    "sestr",
+    "seka$"
+   ],
+   "title": "Woman in Dress",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/zMyPlQXBzq",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "woman",
+   "file": "woman.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "woman",
+    "women",
+    "mother",
+    "mom",
+    "mum",
+    "mommy",
+    "grandma",
+    "grandmother",
+    "granny",
+    "aunt",
+    "teacher",
+    "nurse",
+    "doctor"
+   ],
+   "hr": [
+    "zen$",
+    "zena$",
+    "zene$",
+    "zeni$",
+    "zenu$",
+    "zenom$",
+    "mam$",
+    "mama$",
+    "mame$",
+    "mami$",
+    "mamu$",
+    "majk",
+    "bak$",
+    "baka$",
+    "bake$",
+    "baki$",
+    "baku$",
+    "bakic",
+    "tet",
+    "uciteljic",
+    "medicinsk",
+    "doktoric",
+    "lijecnic"
+   ],
+   "title": "Woman Casual",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/jpKRgGDxhk",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "man",
+   "file": "man.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "man",
+    "men",
+    "father",
+    "dad",
+    "daddy",
+    "uncle",
+    "brother",
+    "teacher",
+    "doctor",
+    "chef",
+    "baker",
+    "fisherman",
+    "person",
+    "people"
+   ],
+   "hr": [
+    "covjek",
+    "covjeka$",
+    "covjeku$",
+    "ljud",
+    "muskar",
+    "tat$",
+    "tata$",
+    "tate$",
+    "tati$",
+    "tatu$",
+    "otac$",
+    "oca$",
+    "ocu$",
+    "ujak",
+    "stric",
+    "brat$",
+    "brata$",
+    "bratu$",
+    "ucitelj$",
+    "ucitelja$",
+    "doktor$",
+    "doktora$",
+    "kuhar",
+    "pekar",
+    "ribar"
+   ],
+   "title": "Man",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/fjHyMd5Wxw",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "farmer",
+   "file": "farmer.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "celebrate"
+   ],
+   "en": [
+    "farmer",
+    "grandpa",
+    "grandfather",
+    "granddad",
+    "old man",
+    "gardener",
+    "shepherd",
+    "villager"
+   ],
+   "hr": [
+    "seljak",
+    "seljac",
+    "farmer",
+    "djed",
+    "dida$",
+    "dide$",
+    "didi$",
+    "didu$",
+    "vrtlar",
+    "pastir",
+    "starac",
+    "starc"
+   ],
+   "title": "Farmer",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/7pn3R6hPvE",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "king",
+   "file": "king.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "celebrate"
+   ],
+   "en": [
+    "king",
+    "prince",
+    "emperor",
+    "lord",
+    "ruler"
+   ],
+   "hr": [
+    "kralj$",
+    "kralja$",
+    "kralju$",
+    "kraljem$",
+    "kraljevic",
+    "princ$",
+    "princa$",
+    "princu$",
+    "princem$",
+    "car$",
+    "cara$",
+    "caru$",
+    "vladar"
+   ],
+   "title": "King",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/I1gTjmuK2m",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "wizard",
+   "file": "wizard.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "wizard",
+    "witch",
+    "mage",
+    "magician",
+    "sorcerer",
+    "sorceress",
+    "warlock",
+    "gnome",
+    "elf",
+    "elves",
+    "dwarf",
+    "dwarves"
+   ],
+   "hr": [
+    "carobn",
+    "vjestic",
+    "vjesc",
+    "mag$",
+    "maga$",
+    "magu$",
+    "patulj",
+    "vilenjak",
+    "vilenjac",
+    "gnom"
+   ],
+   "title": "Wizard",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/o87Upt5uHX",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "pirate",
+   "file": "pirate.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "pirate",
+    "captain",
+    "sailor",
+    "buccaneer"
+   ],
+   "hr": [
+    "gusar",
+    "pirat",
+    "kapetan",
+    "mornar"
+   ],
+   "title": "Pirate Captain",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/sN18LyyHAU",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "astronaut",
+   "file": "astronaut.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "astronaut",
+    "spaceman",
+    "cosmonaut",
+    "pilot"
+   ],
+   "hr": [
+    "astronaut",
+    "kozmonaut",
+    "svemirac",
+    "pilot"
+   ],
+   "title": "Astronaut",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/OgeSH89Nmx",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "ninja",
+   "file": "ninja.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "ninja",
+    "samurai",
+    "thief",
+    "spy"
+   ],
+   "hr": [
+    "ninj",
+    "samuraj",
+    "lopov",
+    "spijun"
+   ],
+   "title": "Ninja",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/xGYmeDpfTu",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "adventurer",
+   "file": "adventurer.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "celebrate"
+   ],
+   "en": [
+    "knight",
+    "adventurer",
+    "explorer",
+    "hero",
+    "warrior",
+    "soldier",
+    "hunter",
+    "traveler",
+    "traveller",
+    "scout"
+   ],
+   "hr": [
+    "vitez",
+    "avanturist",
+    "istrazivac",
+    "junak",
+    "junac",
+    "ratnik",
+    "vojnik",
+    "lovac",
+    "lovc",
+    "putnik",
+    "izvidac"
+   ],
+   "title": "Adventurer",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/ZwF0K7WBmu",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "boy",
+   "file": "boy.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "celebrate"
+   ],
+   "en": [
+    "boy",
+    "kid",
+    "child",
+    "children",
+    "son",
+    "student",
+    "friend",
+    "teenager"
+   ],
+   "hr": [
+    "djecak",
+    "djecac",
+    "decko",
+    "deck",
+    "dijete",
+    "djet",
+    "djeca$",
+    "djecu$",
+    "klinac",
+    "klinc",
+    "sin$",
+    "sina$",
+    "sinu$",
+    "ucenik",
+    "prijatelj"
+   ],
+   "title": "Casual Character",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/kZ3DmIoGip",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "skeleton",
+   "file": "skeleton.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "skeleton",
+    "mummy",
+    "vampire"
+   ],
+   "hr": [
+    "kostur",
+    "mumij",
+    "vampir"
+   ],
+   "title": "Skeleton",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/yq5ATpujSt",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "zombie",
+   "file": "zombie.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "zombie",
+    "scarecrow"
+   ],
+   "hr": [
+    "zombi",
+    "strasil"
+   ],
+   "title": "Zombie",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/JoBvxIUpZP",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "goblin",
+   "file": "goblin.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump"
+   ],
+   "en": [
+    "goblin",
+    "imp",
+    "leprechaun",
+    "pixie"
+   ],
+   "hr": [
+    "goblin",
+    "vragolan",
+    "vrazic",
+    "skrat"
+   ],
+   "title": "Goblin",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/OdCOFSmEhl",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "orc",
+   "file": "orc.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "orc",
+    "troll",
+    "ogre",
+    "giant",
+    "monster",
+    "yeti"
+   ],
+   "hr": [
+    "ork$",
+    "orka$",
+    "trol",
+    "div$",
+    "diva$",
+    "divu$",
+    "divov",
+    "cudovist",
+    "jeti$"
+   ],
+   "title": "Orc",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/5vO2YJsPEf",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "mushroom",
+   "file": "mushroom.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "mushroom",
+    "toadstool",
+    "fungus"
+   ],
+   "hr": [
+    "gljiv",
+    "muhar"
+   ],
+   "title": "Mushroom King",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/grnFTziU8u",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "alien",
+   "file": "alien.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "alien",
+    "martian",
+    "extraterrestrial"
+   ],
+   "hr": [
+    "vanzemalj",
+    "izvanzemalj",
+    "marsovac",
+    "marsovc"
+   ],
+   "title": "Alien",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/RRliSQBP7r",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "dino",
+   "file": "dino.glb",
+   "kind": "biped",
+   "clips": [
+    "idle",
+    "walk",
+    "run",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "dinosaur",
+    "dino",
+    "t-rex",
+    "trex",
+    "lizard",
+    "crocodile",
+    "alligator"
+   ],
+   "hr": [
+    "dinosaur",
+    "dino$",
+    "guster",
+    "krokodil",
+    "aligator"
+   ],
+   "title": "Dino",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/wuerCFCWNR",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "dragon",
+   "file": "dragon.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "celebrate"
+   ],
+   "en": [
+    "dragon",
+    "wyvern",
+    "griffin"
+   ],
+   "hr": [
+    "zmaj",
+    "grifon"
+   ],
+   "title": "Dragon",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/3rUm1cN3yp",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "ghost",
+   "file": "ghost.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "celebrate"
+   ],
+   "en": [
+    "ghost",
+    "spirit",
+    "phantom",
+    "spook"
+   ],
+   "hr": [
+    "duh$",
+    "duha$",
+    "duhu$",
+    "duhom$",
+    "duhov",
+    "duhic",
+    "sablast",
+    "utvar",
+    "bauk"
+   ],
+   "title": "Ghost",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/Iip30bDHmu",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "slime",
+   "file": "slime.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk"
+   ],
+   "en": [
+    "slime",
+    "blob",
+    "jelly",
+    "jellyfish",
+    "goo"
+   ],
+   "hr": [
+    "sluz",
+    "zele",
+    "meduz",
+    "mrlj"
+   ],
+   "title": "Slime",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/LyjSUKHKnh",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "bat",
+   "file": "bat.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk"
+   ],
+   "en": [
+    "bat",
+    "bats"
+   ],
+   "hr": [
+    "sismis"
+   ],
+   "title": "Bat",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/hNO9XvjlKa",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "snake",
+   "file": "snake.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "jump"
+   ],
+   "en": [
+    "snake",
+    "serpent",
+    "worm",
+    "caterpillar",
+    "python",
+    "cobra",
+    "eel"
+   ],
+   "hr": [
+    "zmij",
+    "zmija",
+    "crv",
+    "gusjenic",
+    "piton",
+    "kobr",
+    "jegulj"
+   ],
+   "title": "Snake",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/x9x0viZs8V",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "spider",
+   "file": "spider.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "jump"
+   ],
+   "en": [
+    "spider",
+    "tarantula",
+    "crab",
+    "ant",
+    "beetle",
+    "bug",
+    "ladybug"
+   ],
+   "hr": [
+    "pauk",
+    "rak$",
+    "raka$",
+    "rakov",
+    "mrav",
+    "kornjas",
+    "buba",
+    "bubamar"
+   ],
+   "title": "Spider",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/yRYJiAJyiM",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "fish",
+   "file": "fish.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "run"
+   ],
+   "en": [
+    "fish",
+    "goldfish",
+    "clownfish",
+    "fishes",
+    "seahorse"
+   ],
+   "hr": [
+    "rib",
+    "zlatna ribica",
+    "morski konjic"
+   ],
+   "title": "Clownfish",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/769fHo3eEB",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "shark",
+   "file": "shark.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "run"
+   ],
+   "en": [
+    "shark",
+    "barracuda"
+   ],
+   "hr": [
+    "morski pas",
+    "morskog psa",
+    "morskom psu",
+    "psina",
+    "barakud"
+   ],
+   "title": "Shark",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/sZR8AMLMz5",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "whale",
+   "file": "whale.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk"
+   ],
+   "en": [
+    "whale",
+    "dolphin",
+    "orca",
+    "seal"
+   ],
+   "hr": [
+    "kit$",
+    "kita$",
+    "kitu$",
+    "kitom$",
+    "kitov",
+    "dupin",
+    "orka$",
+    "tulja"
+   ],
+   "title": "Whale",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/JGFwp6xWgk",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "bird",
+   "file": "bird.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "celebrate"
+   ],
+   "en": [
+    "bird",
+    "pigeon",
+    "dove",
+    "sparrow",
+    "parrot",
+    "owl",
+    "crow",
+    "raven",
+    "robin",
+    "seagull",
+    "gull",
+    "eagle",
+    "penguin"
+   ],
+   "hr": [
+    "ptic",
+    "ptica",
+    "golub",
+    "vrab",
+    "papig",
+    "sova$",
+    "sove$",
+    "sovi$",
+    "sovu$",
+    "vran",
+    "galeb",
+    "orao$",
+    "orla$",
+    "orlu$",
+    "pingvin"
+   ],
+   "title": "Pigeon",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/9NGlBTpDEr",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "chicken",
+   "file": "chicken.glb",
+   "kind": "creature",
+   "clips": [
+    "idle",
+    "walk",
+    "run"
+   ],
+   "en": [
+    "chicken",
+    "hen",
+    "rooster",
+    "chick",
+    "duck",
+    "duckling",
+    "goose",
+    "turkey"
+   ],
+   "hr": [
+    "kokos",
+    "kokoš",
+    "pijetao",
+    "pijetl",
+    "pijevac",
+    "pijevc",
+    "pile$",
+    "pilic",
+    "patk",
+    "pacic",
+    "gusk",
+    "puran"
+   ],
+   "title": "Chicken",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/Z3RCoCYss4",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "bee",
+   "file": "bee.glb",
+   "kind": "creature",
+   "clips": [],
+   "en": [
+    "bee",
+    "bumblebee",
+    "wasp",
+    "insect",
+    "butterfly",
+    "fly"
+   ],
+   "hr": [
+    "pcel",
+    "bumbar",
+    "osa$",
+    "ose$",
+    "osu$",
+    "kukac",
+    "kukc",
+    "leptir",
+    "mus$",
+    "music"
+   ],
+   "title": "Bee",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/HvfIku26CK",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "car",
+   "file": "car.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "car",
+    "automobile",
+    "taxi",
+    "racecar",
+    "race car"
+   ],
+   "hr": [
+    "auto$",
+    "auta$",
+    "autu$",
+    "autom$",
+    "automobil",
+    "autic",
+    "taksi"
+   ],
+   "title": "Car",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/unqqkULtRU",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "truck",
+   "file": "truck.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "truck",
+    "lorry",
+    "bus",
+    "van",
+    "tractor",
+    "jeep"
+   ],
+   "hr": [
+    "kamion",
+    "autobus",
+    "kombi",
+    "traktor",
+    "dzip"
+   ],
+   "title": "Truck",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/cXw6oiFtZ8",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "boat",
+   "file": "boat.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "boat",
+    "ship",
+    "sailboat",
+    "yacht",
+    "raft",
+    "canoe"
+   ],
+   "hr": [
+    "brod",
+    "camac",
+    "camc",
+    "jedrilic",
+    "jaht",
+    "splav",
+    "kanu"
+   ],
+   "title": "Sail Boat",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/BgSZXwmm7k",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "chest",
+   "file": "chest.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "chest",
+    "treasure",
+    "box",
+    "trunk",
+    "present",
+    "gift"
+   ],
+   "hr": [
+    "skrinj",
+    "blag",
+    "kutij",
+    "sanduk",
+    "poklon",
+    "dar$",
+    "dara$"
+   ],
+   "title": "Chest",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/RfSBvgcZUD",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "crown",
+   "file": "crown.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "crown",
+    "tiara"
+   ],
+   "hr": [
+    "krun",
+    "tijar"
+   ],
+   "title": "Crown",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/i0PZVuVlYv",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "book",
+   "file": "book.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "book",
+    "diary",
+    "notebook",
+    "letter",
+    "map"
+   ],
+   "hr": [
+    "knjig",
+    "dnevnik",
+    "biljeznic",
+    "pismo",
+    "karta$",
+    "kartu$",
+    "mapa$",
+    "mapu$"
+   ],
+   "title": "Book",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/h3Wh4fxSQX",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "star",
+   "file": "star.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "star",
+    "starlight",
+    "comet"
+   ],
+   "hr": [
+    "zvijezd",
+    "zvjezd",
+    "komet"
+   ],
+   "title": "Star",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/Tyau1aS2r0",
+   "licence": "CC0 1.0"
+  },
+  {
+   "id": "lamp",
+   "file": "lamp.glb",
+   "kind": "object",
+   "clips": [],
+   "en": [
+    "lamp",
+    "lantern",
+    "light",
+    "candle",
+    "torch"
+   ],
+   "hr": [
+    "lamp",
+    "svjetiljk",
+    "fenjer",
+    "svijec",
+    "svjetl",
+    "baklj"
+   ],
+   "title": "Lamp",
+   "author": "Quaternius",
+   "source": "https://poly.pizza/m/RsWYHKkDhD",
+   "licence": "CC0 1.0"
+  }
+ ]
+}

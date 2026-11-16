@@ -20,6 +20,11 @@ public interface TripoClient {
 	/** @param kindHint only used by the mock to pick a matching sample model */
 	String textToModel(String prompt, Kind kindHint);
 
+	/** @param nameHint the character's display name in the story language; only the mock uses it */
+	default String textToModel(String prompt, Kind kindHint, String nameHint) {
+		return textToModel(prompt, kindHint);
+	}
+
 	/** Free check whether a generated model can be rigged, and as what. */
 	String rigCheck(String modelTaskId);
 
@@ -35,5 +40,18 @@ public interface TripoClient {
 
 	/** {@code mock} or {@code live}; part of the model cache key so samples never pose as real models. */
 	String source();
+
+	/**
+	 * Extra cache key material for clients whose output depends on more than the prompt (the mock library match).
+	 * Empty for the live API, so live cache keys never change.
+	 */
+	default String cacheSalt(String prompt, Kind kindHint, String nameHint) {
+		return "";
+	}
+
+	/** True when the model at this output URL already carries our named clips (mock library), so no rig is needed. */
+	default boolean preAnimated(String modelUrl) {
+		return false;
+	}
 
 }

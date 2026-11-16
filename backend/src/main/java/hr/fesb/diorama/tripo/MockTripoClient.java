@@ -14,7 +14,8 @@ import hr.fesb.diorama.tripo.TripoException.Reason;
 
 /**
  * Stand-in for Tripo ({@code TRIPO_MODE=mock}): same task flow as the real API, but "generation" is a fake
- * progressive delay and the result is a bundled CC0 sample GLB. It keeps a simulated wallet with the real
+ * progressive delay and the result is a bundled CC0 sample GLB: the library model that fits the prompt (already animated,
+ * see {@link MockLibrary}), or one of four basic samples chosen by kind when nothing fits. It keeps a simulated wallet with the real
  * prices so the credit guard can be exercised without spending anything.
  *
  * <p>Prompt keywords for trying the failure paths: {@code mock-fail} (generation always fails),
@@ -29,19 +30,44 @@ public class MockTripoClient implements TripoClient {
 			boolean fails) {
 	}
 
+	static final String LIBRARY = "library/";
+
 	private final DioramaProperties.Tripo props;
+	private final MockLibrary library;
 	private final Map<String, MockTask> tasks = new ConcurrentHashMap<>();
 	private final Set<String> flakySeen = ConcurrentHashMap.newKeySet();
 	private double balance;
 
 	public MockTripoClient(DioramaProperties.Tripo props) {
+		this(props, MockLibrary.load());
+	}
+
+	public MockTripoClient(DioramaProperties.Tripo props, MockLibrary library) {
 		this.props = props;
+		this.library = library;
 		this.balance = props.mock().balance();
 	}
 
 	@Override
 	public String source() {
 		return "mock";
+	}
+
+	/** The match itself is part of the cache key, so a changed library or name never reuses an old sample. */
+	@Override
+	public String cacheSalt(String prompt, Kind kindHint, String nameHint) {
+		return "lib-" + library.fingerprint() + "-" + sample(prompt, kindHint, nameHint);
+	}
+
+	@Override
+	public boolean preAnimated(String modelUrl) {
+		return modelUrl != null && modelUrl.startsWith(URL_PREFIX + LIBRARY);
+	}
+
+	private String sample(String prompt, Kind kindHint, String nameHint) {
+		return library.match(prompt, kindHint, nameHint)
+			.map(entry -> LIBRARY + entry.id())
+			.orElse(kindHint == null ? "creature" : kindHint.json());
 	}
 
 	@Override
@@ -56,8 +82,13 @@ public class MockTripoClient implements TripoClient {
 
 	@Override
 	public String textToModel(String prompt, Kind kindHint) {
+		return textToModel(prompt, kindHint, null);
+	}
+
+	@Override
+	public String textToModel(String prompt, Kind kindHint, String nameHint) {
 		boolean fails = prompt.contains("mock-fail") || (prompt.contains("mock-flaky") && flakySeen.add(prompt));
-		String sample = kindHint == null ? "creature" : kindHint.json();
+		String sample = sample(prompt, kindHint, nameHint);
 		return create("text_to_model", sample, prompt, props.mock().generationTime().toNanos(), props.costs().textToModel(), fails);
 	}
 
@@ -105,10 +136,19 @@ public class MockTripoClient implements TripoClient {
 		String name = url != null && url.startsWith(URL_PREFIX) && url.endsWith(".glb")
 				? url.substring(URL_PREFIX.length(), url.length() - 4)
 				: "";
-		if (!SAMPLES.contains(name)) {
+		String resource;
+		if (name.startsWith(LIBRARY)) {
+			resource = library.byId(name.substring(LIBRARY.length()))
+				.map(entry -> MockLibrary.ROOT + entry.file())
+				.orElseThrow(() -> new TripoException(Reason.BAD_OUTPUT, "unknown mock model"));
+		}
+		else if (SAMPLES.contains(name)) {
+			resource = "/mock-models/" + name + ".glb";
+		}
+		else {
 			throw new TripoException(Reason.BAD_OUTPUT, "unknown mock model");
 		}
-		try (InputStream in = MockTripoClient.class.getResourceAsStream("/mock-models/" + name + ".glb")) {
+		try (InputStream in = MockTripoClient.class.getResourceAsStream(resource)) {
 			if (in == null) {
 				throw new TripoException(Reason.BAD_OUTPUT, "mock model " + name + ".glb is missing from the classpath");
 			}

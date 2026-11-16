@@ -82,10 +82,11 @@ class StoryApiIntegrationTest extends ApiTestSupport {
 			assertThat(clip.path("clip").asText()).isNotBlank();
 		});
 
+		// the rabbit matches the mock library: a pre-animated model, no rig, clips already named like ours
 		JsonNode rabbit = character(story, "rabbit").path("model");
-		assertThat(rabbit.path("rigType").asText()).isEqualTo("quadruped");
-		assertThat(rabbit.path("animations")).hasSize(1);
-		assertThat(rabbit.path("animations").path(0).path("clip").asText()).isEqualTo("Walk");
+		assertThat(rabbit.path("rigged").asBoolean()).isFalse();
+		assertThat(rabbit.path("animations")).extracting(c -> c.path("name").asText()).contains("walk", "idle");
+		assertThat(rabbit.path("animations").path(0).path("url").asText()).isEqualTo(rabbit.path("glbUrl").asText());
 
 		// the model files are really served
 		byte[] glb = mvc.perform(get(model.path("animations").path(0).path("url").asText()))

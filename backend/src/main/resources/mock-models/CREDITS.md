@@ -1,6 +1,7 @@
 # Mock models (TRIPO_MODE=mock)
 
 Sample GLBs returned by `MockTripoClient` instead of real Tripo output. All are CC0 1.0.
+The character library in `library/` is credited model by model in `frontend/public/mock/CREDITS.md`.
 
 | File | Used for | Source | Licence |
 |---|---|---|---|

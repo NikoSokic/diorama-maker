@@ -81,7 +81,7 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 	void aFailedModelBecomesAPlaceholderAndTheStoryStillPlays() throws Exception {
 		SCRIPT.put("fallbacks", StoryPlanner.Outcome.ok(Fixtures.plan(
 				"glitch", "biped", "mock-fail broken robot",
-				"shy", "biped", "mock-norig shy penguin",
+				"shy", "biped", "mock-norig shy robot",
 				"lucky", "creature", "mock-flaky lucky bird")));
 
 		JsonNode story = createAndAwait("fallbacks", "en");
@@ -109,7 +109,7 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 	@Test
 	void shortCreditsSkipRiggingFirstAndGenerationLast() throws Exception {
 		SCRIPT.put("tight", StoryPlanner.Outcome.ok(Fixtures.plan(
-				"alpha", "biped", "tiny wizard alpha", "beta", "biped", "tiny wizard beta")));
+				"alpha", "biped", "tiny robot alpha", "beta", "biped", "tiny robot beta")));
 		wallet().setBalance(45);
 
 		JsonNode tight = createAndAwait("tight", "en");
@@ -122,7 +122,7 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 		assertThat(wallet().balance().balance()).isEqualTo(5);
 
 		SCRIPT.put("broke", StoryPlanner.Outcome.ok(Fixtures.plan(
-				"gamma", "creature", "tiny wizard gamma", "delta", "creature", "tiny wizard delta")));
+				"gamma", "creature", "tiny robot gamma", "delta", "creature", "tiny robot delta")));
 		wallet().setBalance(25);
 
 		JsonNode broke = createAndAwait("broke", "en");
@@ -136,7 +136,7 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 
 	@Test
 	void aBipedGetsFewerClipsWhenThatIsAllTheBudgetAllows() throws Exception {
-		SCRIPT.put("some clips", StoryPlanner.Outcome.ok(Fixtures.plan("epsilon", "biped", "tiny wizard epsilon")));
+		SCRIPT.put("some clips", StoryPlanner.Outcome.ok(Fixtures.plan("epsilon", "biped", "tiny robot epsilon")));
 		// model 20 + rig 25 + 2 clips 20 = 65
 		wallet().setBalance(70);
 
@@ -150,7 +150,7 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 
 	@Test
 	void newStoriesAreRefusedWhenCreditsAreGone() throws Exception {
-		SCRIPT.put("no credits", StoryPlanner.Outcome.ok(Fixtures.plan("zeta", "creature", "tiny wizard zeta")));
+		SCRIPT.put("no credits", StoryPlanner.Outcome.ok(Fixtures.plan("zeta", "creature", "tiny robot zeta")));
 		wallet().setBalance(0);
 		credits.status();
 
@@ -162,8 +162,8 @@ class PipelineFallbackIntegrationTest extends ApiTestSupport {
 
 	@Test
 	void plansMadeWithoutTheLlmStayOutOfTheGallery() throws Exception {
-		SCRIPT.put("moderated", StoryPlanner.Outcome.ok(Fixtures.plan("eta", "object", "tiny wizard eta")));
-		SCRIPT.put("unmoderated", StoryPlanner.Outcome.fallback(Fixtures.plan("eta", "object", "tiny wizard eta")));
+		SCRIPT.put("moderated", StoryPlanner.Outcome.ok(Fixtures.plan("eta", "object", "tiny robot eta")));
+		SCRIPT.put("unmoderated", StoryPlanner.Outcome.fallback(Fixtures.plan("eta", "object", "tiny robot eta")));
 
 		String shown = createAndAwait("moderated", "en").path("slug").asText();
 		JsonNode hidden = createAndAwait("unmoderated", "en");

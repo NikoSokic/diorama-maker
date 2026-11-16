@@ -70,9 +70,18 @@ public class ModelService {
 	 * Mock samples and live models never share a key.
 	 */
 	public String cacheKey(String prompt) {
+		return cacheKey(prompt, null, null);
+	}
+
+	/** Kind and display name only count for a client that says so (the mock library match); live keys ignore them. */
+	public String cacheKey(String prompt, Kind kind, String displayName) {
 		String normalized = prompt.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
 		String material = String.join("|", tripo.source(), props.modelVersion(), String.valueOf(props.faceLimit()),
 				props.textureQuality(), normalized);
+		String salt = tripo.cacheSalt(prompt, kind, displayName);
+		if (salt != null && !salt.isEmpty()) {
+			material += "|" + salt;
+		}
 		try {
 			return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(material.getBytes(StandardCharsets.UTF_8)));
 		}
@@ -82,8 +91,8 @@ public class ModelService {
 	}
 
 	/** A cached model whose files are still served; costs no credits. */
-	public Optional<ModelRecord> cached(String prompt) {
-		return models.findByHash(cacheKey(prompt)).filter(this::usable);
+	public Optional<ModelRecord> cached(String prompt, Kind kind, String displayName) {
+		return models.findByHash(cacheKey(prompt, kind, displayName)).filter(this::usable);
 	}
 
 	/**
@@ -92,7 +101,11 @@ public class ModelService {
 	 * @throws TripoException when no model could be produced (the caller shows a placeholder character)
 	 */
 	public ModelRecord obtain(String prompt, Kind kind, Grant grant, Progress progress) {
-		String hash = cacheKey(prompt);
+		return obtain(prompt, kind, null, grant, progress);
+	}
+
+	public ModelRecord obtain(String prompt, Kind kind, String displayName, Grant grant, Progress progress) {
+		String hash = cacheKey(prompt, kind, displayName);
 		Optional<ModelRecord> hit = models.findByHash(hash).filter(this::usable);
 		if (hit.isPresent()) {
 			return hit.get();
@@ -106,7 +119,7 @@ public class ModelService {
 			// another thread may have finished this very model between the lookup above and taking the slot;
 			// looking again here is what keeps the same prompt from being paid for twice
 			Optional<ModelRecord> late = models.findByHash(hash).filter(this::usable);
-			ModelRecord model = late.isPresent() ? late.get() : generate(hash, prompt, kind, grant, progress);
+			ModelRecord model = late.isPresent() ? late.get() : generate(hash, prompt, kind, displayName, grant, progress);
 			mine.complete(model);
 			return model;
 		}
@@ -119,34 +132,42 @@ public class ModelService {
 		}
 	}
 
-	private ModelRecord generate(String hash, String prompt, Kind kind, Grant grant, Progress progress) {
+	private ModelRecord generate(String hash, String prompt, Kind kind, String displayName, Grant grant, Progress progress) {
 		if (!grant.generate()) {
 			throw new TripoException(Reason.INSUFFICIENT_CREDITS, "not enough Tripo credits for this model");
 		}
 		try {
-			return generateOnce(hash, prompt, kind, grant, progress);
+			return generateOnce(hash, prompt, kind, displayName, grant, progress);
 		}
 		catch (TripoException e) {
 			if (!e.retryable()) {
 				throw e;
 			}
 			log.warn("model generation failed ({}), retrying once", e.getMessage());
-			return generateOnce(hash, prompt, kind, grant, progress);
+			return generateOnce(hash, prompt, kind, displayName, grant, progress);
 		}
 	}
 
-	private ModelRecord generateOnce(String hash, String prompt, Kind kind, Grant grant, Progress progress) {
+	private ModelRecord generateOnce(String hash, String prompt, Kind kind, String displayName, Grant grant, Progress progress) {
 		boolean rigPlanned = grant.maxClips() > 0;
 		progress.report(Stage.GENERATING, 1);
-		String taskId = tripo.textToModel(prompt, kind);
+		String taskId = tripo.textToModel(prompt, kind, displayName);
 		TripoTask task = TaskPoller.await(tripo, taskId, props, scaled(progress, Stage.GENERATING, 2, rigPlanned ? 58 : 93));
 
-		String glbUrl = storage.put(hash + "/base.glb", downloadGlb(task.modelUrl()), ModelStorage.GLB);
+		byte[] base = downloadGlb(task.modelUrl());
+		String glbUrl = storage.put(hash + "/base.glb", base, ModelStorage.GLB);
 		String thumbnailUrl = thumbnail(hash, task.renderedImageUrl());
 		progress.report(Stage.GENERATING, rigPlanned ? 62 : 97);
 
 		Rigging rigging = Rigging.NONE;
-		if (rigPlanned) {
+		List<AnimationClip> builtIn = tripo.preAnimated(task.modelUrl())
+				? RigPlan.builtIn(GlbInspector.animationNames(base), glbUrl)
+				: List.of();
+		if (!builtIn.isEmpty()) {
+			// a mock library model ships with its clips already named like ours: nothing to rig
+			rigging = new Rigging(false, null, null, null, builtIn);
+		}
+		else if (rigPlanned) {
 			try {
 				rigging = rig(hash, taskId, grant.maxClips(), progress);
 			}

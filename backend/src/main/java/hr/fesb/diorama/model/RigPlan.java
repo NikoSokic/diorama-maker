@@ -67,6 +67,14 @@ public record RigPlan(String rigType, String rigModel, List<Clip> clips) {
 		};
 	}
 
+	/** Our clip names, most valuable first; the order a pre-animated model's clips are listed in. */
+	private static final List<String> OUR_CLIPS = List.of("walk", "idle", "run", "jump", "celebrate");
+
+	/** Clips a pre-animated model brings along: exactly our names, all in the one GLB at {@code url}. */
+	public static List<AnimationClip> builtIn(List<String> glbClipNames, String url) {
+		return OUR_CLIPS.stream().filter(glbClipNames::contains).map(name -> new AnimationClip(name, "built-in", name, url)).toList();
+	}
+
 	public RigPlan limit(int maxClips) {
 		return new RigPlan(rigType, rigModel, clips.subList(0, Math.max(0, Math.min(maxClips, clips.size()))));
 	}
