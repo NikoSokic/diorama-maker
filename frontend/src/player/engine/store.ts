@@ -39,6 +39,10 @@ export interface PlayerState {
   curtain: { kind: CurtainKind; stage: 'cover' | 'reveal' } | null
   muted: boolean
   quality: Quality
+  /** A video of the story is being recorded: the controls hide, nothing but the story is on screen. */
+  recording: boolean
+  /** How the last video recording ended, for the end card to say so. */
+  videoResult: 'saved' | 'unsupported' | 'failed' | 'cancelled' | 'hidden' | null
   /** Bumped whenever the current scene restarts, so narration and subtitles start again. */
   sceneRun: number
   clock: Clock
@@ -53,6 +57,8 @@ export interface PlayerState {
   goTo(index: number, kind?: CurtainKind): void
   seek(index: number, time: number): void
   setMuted(muted: boolean): void
+  setRecording(recording: boolean): void
+  setVideoResult(result: PlayerState['videoResult']): void
   setQuality(quality: Quality): void
   tick(dt: number): void
   dispose(): void
@@ -103,6 +109,8 @@ export function createPlayerStore(story: StoryView, options?: { muted?: boolean;
       sceneIndex: 0,
       curtain: null,
       muted: options?.muted ?? false,
+    recording: false,
+    videoResult: null,
       quality: options?.quality ?? 'high',
       sceneRun: 0,
       clock,
@@ -162,6 +170,8 @@ export function createPlayerStore(story: StoryView, options?: { muted?: boolean;
         set({ phase: 'playing', playing: false, curtain: null })
       },
       setMuted: (muted) => set({ muted }),
+      setRecording: (recording) => set({ recording, ...(recording && { videoResult: null }) }),
+      setVideoResult: (videoResult) => set({ videoResult }),
       setQuality: (quality) => set({ quality }),
 
       tick(dt) {

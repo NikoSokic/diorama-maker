@@ -51,12 +51,17 @@ export function captureFrame(store: PlayerStore): Promise<string> {
   })
 }
 
+/** A story title as a safe file name (letters and digits joined by dashes). */
+export function fileName(title: string): string {
+  return title.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'diorama'
+}
+
 export async function saveScreenshot(store: PlayerStore, name: string): Promise<boolean> {
   const dataUrl = await captureFrame(store)
   if (!dataUrl) return false
   const link = document.createElement('a')
   link.href = dataUrl
-  link.download = `${name.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'diorama'}.png`
+  link.download = `${fileName(name)}.png`
   document.body.appendChild(link)
   link.click()
   link.remove()

@@ -678,3 +678,61 @@
     animation: none;
   }
 }
+
+/* Video recording: a quiet badge at the top (HTML, so never in the video) and the end card's note. */
+.dm-recording {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: min(92%, 34rem);
+  padding: 8px 10px 8px 16px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgb(29 21 51 / 0.72);
+  color: var(--dm-cream);
+  font-weight: 800;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.dm-recording small {
+  flex-basis: 100%;
+  padding: 0 8px 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.dm-recording-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5a4f;
+  animation: dm-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dm-pulse {
+  50% { opacity: 0.35; }
+}
+
+.dm-end .dm-note {
+  max-width: 30rem;
+  margin: -4px 0 0;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgb(255 247 232 / 0.92);
+  color: var(--dm-plum, #3a2a4d);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-recording-dot { animation: none; }
+}

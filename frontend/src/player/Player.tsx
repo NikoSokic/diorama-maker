@@ -7,11 +7,12 @@ import { NoToneMapping } from 'three'
 import type { Lang, StoryView } from '../api/types'
 import { createPlayerStore, PlayerContext, usePlayer, type PlayerStore, type Quality } from './engine/store'
 import { useThumbnailCapture } from './ui/thumbnail'
+import { RecordFrames } from './export/videoExport'
 import { useSoundscape } from './audio/useSoundscape'
 import { useNarration } from './narration/useNarration'
 import { Stage } from './Stage'
 import { CanvasErrorBoundary } from '../components/CanvasErrorBoundary'
-import { Controls, Curtain, EndCard, NoStage, Subtitles, TitleCard } from './ui/Overlay'
+import { Controls, Curtain, EndCard, NoStage, RecordingBadge, Subtitles, TitleCard } from './ui/Overlay'
 import { PLAYER_STRINGS } from './ui/strings'
 
 export interface PlayerProps {
@@ -195,6 +196,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare, endExtra }: { stor
               <PerformanceMonitor onDecline={() => store.getState().setQuality(LOWER[store.getState().quality])} flipflops={3} />
             )}
             <Stage />
+            <RecordFrames />
           </PlayerContext.Provider>
         </Canvas>
         </CanvasErrorBoundary>
@@ -205,6 +207,7 @@ function Shell({ store, fixedQuality, uiLang, shareUrl, bare, endExtra }: { stor
           <Soundscape />
           <Subtitles />
           <Controls t={t} visible={active} onFullscreen={canFullscreen ? fullscreen : undefined} />
+          <RecordingBadge t={t} />
           <TitleCard t={t} />
           <EndCard t={t} shareUrl={shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')} extra={endExtra} />
         </>

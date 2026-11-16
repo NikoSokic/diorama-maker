@@ -13,8 +13,11 @@ import {
   ShareIcon,
   SoundOffIcon,
   SoundOnIcon,
+  VideoIcon,
 } from './icons'
-import { canWebShare, copyText, saveScreenshot, webShare } from './share'
+import { cancelVideo, recordVideo } from '../export/videoExport'
+import { recordingSupport } from '../export/recorder'
+import { canWebShare, copyText, fileName, saveScreenshot, webShare } from './share'
 import type { PlayerStrings } from './strings'
 
 /** Iris wipe (new place) or fade (same place) between scenes. */
@@ -113,7 +116,8 @@ export function Controls({ t, visible, onFullscreen }: { t: PlayerStrings; visib
   const sceneIndex = usePlayer((s) => s.sceneIndex)
   const count = usePlayer((s) => s.scenes.length)
   const title = usePlayer((s) => s.plan.title)
-  if (phase !== 'playing') return null
+  const recording = usePlayer((s) => s.recording)
+  if (phase !== 'playing' || recording) return null
   const actions = store.getState()
 
   return (
@@ -231,13 +235,39 @@ function useFlash(): [boolean, () => void] {
   ]
 }
 
+/** While a video is recorded: a small badge (outside the canvas, so not in the video) and a way out. */
+export function RecordingBadge({ t }: { t: PlayerStrings }) {
+  const store = usePlayerStore()
+  const recording = usePlayer((s) => s.recording)
+  const browserVoice = usePlayer((s) => !s.story.narration?.length)
+  if (!recording) return null
+  return (
+    <div className="dm-recording" role="status">
+      <span className="dm-recording-dot" aria-hidden="true" />
+      <span>{t.recording}</span>
+      <button type="button" className="dm-pill" onClick={() => cancelVideo(store)}>
+        {t.cancelRecording}
+      </button>
+      {browserVoice && <small>{t.videoBrowserVoice}</small>}
+    </div>
+  )
+}
+
 export function EndCard({ t, shareUrl, extra }: { t: PlayerStrings; shareUrl: string; extra?: ReactNode }) {
   const store = usePlayerStore()
   const phase = usePlayer((s) => s.phase)
   const title = usePlayer((s) => s.plan.title)
   const [copied, flashCopied] = useFlash()
   const [saved, flashSaved] = useFlash()
+  const videoResult = usePlayer((s) => s.videoResult)
+  const canRecord = useMemo(() => recordingSupport() !== null, [])
+  const [unsupported, setUnsupported] = useState(false)
   if (phase !== 'ended') return null
+  const videoNote = unsupported || videoResult === 'unsupported' ? t.videoUnsupported
+    : videoResult === 'saved' ? t.videoSaved
+    : videoResult === 'failed' ? t.videoFailed
+    : videoResult === 'hidden' ? t.videoHidden
+    : null
 
   return (
     <div className="dm-card-layer dm-end-layer">
@@ -271,7 +301,20 @@ export function EndCard({ t, shareUrl, extra }: { t: PlayerStrings; shareUrl: st
             <CameraIcon />
             {saved ? t.saved : t.savePicture}
           </button>
+          <button
+            type="button"
+            className="dm-pill"
+            onClick={() => (canRecord ? void recordVideo(store, fileName(title)) : setUnsupported(true))}
+          >
+            <VideoIcon />
+            {t.downloadVideo}
+          </button>
         </div>
+        {videoNote && (
+          <p className="dm-note" role="status">
+            {videoNote}
+          </p>
+        )}
         {extra}
       </div>
     </div>

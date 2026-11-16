@@ -23,6 +23,14 @@ const hr = {
   fullscreen: 'Cijeli zaslon',
   scene: 'Scena',
   shareText: 'Pogledaj moju 3D priču!',
+  downloadVideo: 'Preuzmi video',
+  recording: 'Snimam video…',
+  cancelRecording: 'Prekini',
+  videoSaved: 'Video je spremljen!',
+  videoUnsupported: 'Ovaj preglednik ne može snimiti video. Probaj Chrome, Edge ili Firefox na računalu.',
+  videoFailed: 'Snimanje nije uspjelo. Pokušaj ponovno.',
+  videoHidden: 'Snimanje je prekinuto jer kartica nije bila vidljiva. Ostavi je otvorenu dok se video snima.',
+  videoBrowserVoice: 'Glas preglednika ne može se snimiti, pa video ima titlove bez pripovjedača.',
 }
 
 export type PlayerStrings = typeof hr
@@ -50,6 +58,14 @@ const en: PlayerStrings = {
   fullscreen: 'Full screen',
   scene: 'Scene',
   shareText: 'Watch my 3D story!',
+  downloadVideo: 'Download video',
+  recording: 'Recording the video…',
+  cancelRecording: 'Cancel',
+  videoSaved: 'Video saved!',
+  videoUnsupported: 'This browser cannot record video. Try Chrome, Edge or Firefox on a computer.',
+  videoFailed: 'The recording did not work. Please try again.',
+  videoHidden: 'The recording stopped because the tab was hidden. Keep it open while the video records.',
+  videoBrowserVoice: 'The browser voice cannot be recorded, so the video has subtitles without the narrator.',
 }
 
 export const PLAYER_STRINGS: Record<Lang, PlayerStrings> = { hr, en }
