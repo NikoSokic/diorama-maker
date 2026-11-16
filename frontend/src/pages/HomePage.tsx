@@ -80,7 +80,7 @@ export function HomePage() {
   const cards = recent.length > 0 ? recent : SAMPLE_GALLERY
   return (
     <Layout overlayHeader>
-      <section className="relative isolate overflow-hidden px-4 pb-10 pt-24 sm:px-8 sm:pt-28">
+      <section className="relative isolate overflow-hidden px-4 pb-10 pt-32 sm:px-8 sm:pt-28">
         <Backdrop />
         <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
           <h1 className="font-display text-4xl font-bold leading-tight sm:text-6xl">{t.home.title}</h1>
@@ -180,5 +180,6 @@ export function HomePage() {
     </Layout>
   )
 }
+
 
 
