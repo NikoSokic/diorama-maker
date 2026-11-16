@@ -1,9 +1,16 @@
 package hr.fesb.diorama.config;
 
+import java.time.Clock;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hr.fesb.diorama.config.DioramaProperties.Mode;
+import hr.fesb.diorama.narration.GeminiSpeech;
+import hr.fesb.diorama.narration.NarrationClipRepository;
+import hr.fesb.diorama.narration.NarrationService;
+import hr.fesb.diorama.narration.SpeechClient;
 import hr.fesb.diorama.plan.GeminiClient;
 import hr.fesb.diorama.plan.GeminiStoryPlanner;
 import hr.fesb.diorama.plan.OfflineStoryPlanner;
@@ -41,6 +48,16 @@ public class AppConfig {
 		}
 		log.info("Tripo is in mock mode (bundled sample models, no credits spent)");
 		return new MockTripoClient(tripo);
+	}
+
+	@Bean
+	NarrationService narrationService(DioramaProperties props, ModelStorage storage, NarrationClipRepository clips, ObjectMapper json) {
+		DioramaProperties.Gemini gemini = props.gemini();
+		SpeechClient speech = gemini.ttsEnabled() ? new GeminiSpeech(gemini, json) : null;
+		log.info(speech == null ? "narration: browser voice (generated voice off)" : "narration: generated voice ({})", gemini.ttsModel());
+		// one request at a time: the free tier's per-minute limit is small and unknown
+		ExecutorService executor = Executors.newSingleThreadExecutor(Thread.ofPlatform().name("narration").daemon().factory());
+		return new NarrationService(speech, storage, clips, executor, gemini.ttsBudget(), gemini.ttsDailyLimit(), Clock.systemUTC());
 	}
 
 	@Bean

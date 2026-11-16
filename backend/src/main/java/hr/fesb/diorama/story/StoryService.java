@@ -42,7 +42,9 @@ public class StoryService {
 	}
 
 	public record StoryView(String slug, StoryStatus status, int progress, String lang, String text, String title,
-			String errorCode, String error, Instant createdAt, JsonNode plan, List<CharacterView> characters) {
+			String errorCode, String error, Instant createdAt, JsonNode plan, List<CharacterView> characters,
+			/** One {@code {url, durationSec}} per scene, or null: then the browser's voice reads the story. */
+			JsonNode narration) {
 	}
 
 	public record CharacterView(String key, String displayName, String kind, CharacterStatus status, int progress,
@@ -137,7 +139,8 @@ public class StoryService {
 		String error = story.status() != StoryStatus.FAILED ? null
 				: story.error() != null ? story.error() : errorMessage(story.errorCode(), story.lang());
 		return new StoryView(story.slug(), story.status(), progress(story.status(), characters), story.lang(), story.text(),
-				plan == null ? null : plan.path("title").asText(null), story.errorCode(), error, story.createdAt(), plan, characters);
+				plan == null ? null : plan.path("title").asText(null), story.errorCode(), error, story.createdAt(), plan, characters,
+				story.status() == StoryStatus.READY ? parse(story.narrationJson()) : null);
 	}
 
 	public List<GalleryItem> gallery(int limit) {

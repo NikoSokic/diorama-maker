@@ -25,6 +25,8 @@ export interface AudioSnapshot {
   layers: number
   /** How many of each one-shot sound were played; for checks in tests and Playwright. */
   played: Record<string, number>
+  /** The generated narrator voice, when one is routed through the engine. */
+  voice: { playing: boolean; time: number } | null
 }
 
 interface Layer {
@@ -41,6 +43,9 @@ export class SoundEngine {
   private master!: GainNode
   private bedBus!: GainNode
   private sfxBus!: GainNode
+  /** The narrator's voice: straight to the output (not ducked, not faded with the ambience). */
+  private voice!: GainNode
+  private voiceElement: HTMLAudioElement | null = null
   private noise!: AudioBuffer
   private layer: Layer | null = null
   private pending: Soundscape | null = null
@@ -79,6 +84,8 @@ export class SoundEngine {
       this.sfxBus.gain.value = 0
       this.bedBus.connect(this.master)
       this.sfxBus.connect(this.master)
+      this.voice = ctx.createGain()
+      this.voice.connect(ctx.destination)
       this.noise = this.makeNoise()
       this.timer = setInterval(() => this.scheduleEvents(), 250)
       if (this.pending) this.setScene(this.pending)
@@ -93,13 +100,22 @@ export class SoundEngine {
     if (!this.stream) {
       this.stream = this.ctx.createMediaStreamDestination()
       this.master.connect(this.stream)
+      this.voice.connect(this.stream)
     }
     return this.stream.stream
   }
 
-  /** Lets other audio (the generated narrator voice) play through the same output and recording. */
-  connectExternal(node: AudioNode): void {
-    if (this.ctx && this.stream) node.connect(this.stream)
+  /** Plays an <audio> element (the generated narrator voice) through the engine, so a recording includes it. */
+  route(element: HTMLAudioElement): boolean {
+    const ctx = this.ctx as (Ctx & { createMediaElementSource?: (el: HTMLMediaElement) => AudioNode }) | null
+    if (!ctx?.createMediaElementSource) return false
+    try {
+      ctx.createMediaElementSource(element).connect(this.voice)
+      this.voiceElement = element
+      return true
+    } catch {
+      return false
+    }
   }
 
   get context(): BaseAudioContext | null {
@@ -184,6 +200,7 @@ export class SoundEngine {
       levels: { ...this.levels },
       layers: this.layer ? 1 : 0,
       played: { ...this.played },
+      voice: this.voiceElement ? { playing: !this.voiceElement.paused, time: this.voiceElement.currentTime } : null,
     }
   }
 

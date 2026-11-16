@@ -76,7 +76,19 @@ public record DioramaProperties(
 			@DefaultValue("gemini-3.5-flash-lite") String model,
 			@DefaultValue("https://generativelanguage.googleapis.com/v1beta") String baseUrl,
 			@DefaultValue("30s") Duration timeout,
-			@DefaultValue("2s") Duration retryBackoff) {
+			@DefaultValue("2s") Duration retryBackoff,
+			/** Generated narrator voice: {@code on} (when Gemini is live) or {@code off} (browser voice only). */
+			@DefaultValue("on") String tts,
+			@DefaultValue("gemini-3.8-flash-tts") String ttsModel,
+			@DefaultValue("Kore") String ttsVoice,
+			/** A story waits at most this long for its narration before it plays with the browser voice. */
+			@DefaultValue("60s") Duration ttsBudget,
+			/** Speech requests per UTC day, a guard for the free tier's quota. */
+			@DefaultValue("150") int ttsDailyLimit) {
+
+		public boolean ttsEnabled() {
+			return resolvedMode() == Mode.LIVE && !"off".equalsIgnoreCase(tts.trim());
+		}
 
 		/** Mock (offline planner) when asked for, or when there is no key to call Gemini with. */
 		public Mode resolvedMode() {
@@ -85,7 +97,7 @@ public record DioramaProperties(
 
 		@Override
 		public String toString() {
-			return "Gemini[mode=" + mode + ", model=" + model + ", apiKey=" + (apiKey.isEmpty() ? "unset" : "set") + "]";
+			return "Gemini[mode=" + mode + ", model=" + model + ", tts=" + tts + "/" + ttsModel + ", apiKey=" + (apiKey.isEmpty() ? "unset" : "set") + "]";
 		}
 	}
 

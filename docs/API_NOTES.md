@@ -339,6 +339,25 @@ We set `block_low_and_above` on all categories **and** ask the model for an expl
 `400` invalid argument / blocked, `403` key lacks permission, `404` unknown model, `429` quota exhausted (free tier — back off and
 retry once, then fail the story with a friendly "busy, try again in a minute"), `500/503` transient → retry with backoff.
 
+## 2b. Gemini speech (narrator voice)
+
+- Endpoint: `POST {GEMINI base}/interactions`, header `x-goog-api-key`, header `Api-Revision: 2026-05-20` (same as the planner).
+- Body:
+  ```json
+  {
+    "model": "gemini-3.8-flash-tts", "store": false,
+    "input": [{ "type": "user_input", "content": [{ "type": "text", "text": "<scene narration>",
+      "annotations": [{ "type": "speech_metadata", "style": "<delivery>" }] }] }],
+    "response_format": { "type": "audio" },
+    "generation_config": { "speech_config": [{ "voice": "Kore" }] }
+  }
+  ```
+- Style used: `warm, calm storyteller reading a picture book for children aloud in standard Croatian` (HR) / `... in clear English` (EN). The style is followed but not spoken.
+- Answer: base64 WAV in `steps[].content[]` where `step.type == "model_output"` and `content.type == "audio"` (field `data`, `mime_type` `audio/wav`). 24 kHz mono 16-bit PCM, about 48 KB per second.
+- `response_format.sample_rate` (e.g. 16000) is rejected with HTTP 400 `invalid_request` (checked 2026-11-16), so the default 24 kHz is used.
+- Free tier: `gemini-3.8-flash-tts` and `gemini-3.8-flash-lite-tts` are "Free of charge" on the pricing page (checked 2026-11-16). Free-tier RPM/RPD are not published (AI Studio shows them per project). The app caps itself with `GEMINI_TTS_DAILY_LIMIT` (default 150 requests per UTC day) and pauses 30 minutes after an HTTP 429.
+- Croatian check (2026-11-16): clips were transcribed back by `gemini-3.5-flash-lite` without the source text. `flash-lite-tts` was heard twice with an ekavian/Serbian "devojčica" for "djevojčica". `flash-tts` with voice Kore was judged native Croatian. Hence the default `gemini-3.8-flash-tts` + `Kore`.
+
 ---
 
 ## 3. Supabase
@@ -500,6 +519,7 @@ A story that fails **after** it was accepted is reported in the story view inste
   gift | cake | treasure_chest | boat | bridge | signpost | star | crystal | snowman | cactus | shell | rocket.
 - `plan.source`: `gemini` or `offline` (keyword-based stand-in used when Gemini is unreachable or `GEMINI_MODE=mock`).
   Offline plans are playable by link but never listed in the gallery (they were not moderated by the LLM).
+- `narration`: array with one `{"url": string, "durationSec": number}` per scene. Present only when `status` is `READY` and the story has a generated voice; `null` otherwise (then the player uses the browser's `speechSynthesis`). Clips are served like model files (`/api/files/narration/<sha256>.wav` in local storage). All or nothing: either every scene has a clip or the field is `null`.
 
 ### 4.3 Gallery item — `GET /api/stories`
 

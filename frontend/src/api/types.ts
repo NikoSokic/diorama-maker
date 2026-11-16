@@ -172,6 +172,13 @@ export interface StoryView {
   errorCode?: string
   plan?: StoryPlan
   characters: StoryCharacter[]
+  /** Generated narrator voice, one clip per scene; absent or null = the browser's voice reads the story. */
+  narration?: NarrationClip[] | null
+}
+
+export interface NarrationClip {
+  url: string
+  durationSec: number
 }
 
 /** Answer of `POST /api/stories`. */

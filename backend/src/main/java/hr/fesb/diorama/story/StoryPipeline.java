@@ -19,6 +19,8 @@ import hr.fesb.diorama.plan.StoryPlan;
 import hr.fesb.diorama.plan.StoryPlan.Kind;
 import hr.fesb.diorama.plan.StoryPlan.StoryCharacter;
 import hr.fesb.diorama.plan.StoryPlanner;
+import hr.fesb.diorama.narration.NarrationClip;
+import hr.fesb.diorama.narration.NarrationService;
 import hr.fesb.diorama.story.StoryRepository.CharacterStatus;
 import hr.fesb.diorama.tripo.TripoException;
 import org.slf4j.Logger;
@@ -43,9 +45,11 @@ public class StoryPipeline {
 	private final StoryRepository stories;
 	private final ObjectMapper json;
 	private final ThreadPoolTaskExecutor modelExecutor;
+	private final NarrationService narration;
 
 	public StoryPipeline(StoryPlanner planner, ModelService models, CreditGuard credits, StoryRepository stories,
-			ObjectMapper json, @Qualifier("modelExecutor") ThreadPoolTaskExecutor modelExecutor) {
+			ObjectMapper json, @Qualifier("modelExecutor") ThreadPoolTaskExecutor modelExecutor, NarrationService narration) {
+		this.narration = narration;
 		this.planner = planner;
 		this.models = models;
 		this.credits = credits;
@@ -67,7 +71,13 @@ public class StoryPipeline {
 			List<String> keys = plan.characters().stream().map(StoryCharacter::key).toList();
 			// a plan made without the LLM was not moderated by it: playable by link, but not in the gallery
 			stories.startGeneration(storyId, json.writeValueAsString(plan), keys, !outcome.fallback());
+			// the voice is made while the models are; both are done before the story is READY
+			CompletableFuture<List<NarrationClip>> voice = narration.start(plan);
 			generateModels(storyId, plan);
+			List<NarrationClip> clips = voice.join();
+			if (!clips.isEmpty()) {
+				stories.setNarration(storyId, json.writeValueAsString(clips));
+			}
 			stories.markReady(storyId);
 			log.info("story {} ready in {} ms ({} characters, planner: {})", slug, (System.nanoTime() - started) / 1_000_000,
 					keys.size(), plan.source());

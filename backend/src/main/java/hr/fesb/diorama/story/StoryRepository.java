@@ -19,7 +19,7 @@ public class StoryRepository {
 	public enum CharacterStatus { PENDING, GENERATING, RIGGING, READY, PLACEHOLDER }
 
 	public record StoryRow(UUID id, String slug, String text, String lang, String planJson, StoryStatus status,
-			String error, String errorCode, boolean isPublic, Instant createdAt) {
+			String error, String errorCode, boolean isPublic, Instant createdAt, String narrationJson) {
 	}
 
 	public record CharacterRow(String key, UUID modelId, CharacterStatus status, int progress, String error) {
@@ -59,7 +59,8 @@ public class StoryRepository {
 
 	public Optional<StoryRow> findBySlug(String slug) {
 		return jdbc.sql("""
-				SELECT id, slug, text, lang, plan::text AS plan, status, error, error_code, is_public, created_at
+				SELECT id, slug, text, lang, plan::text AS plan, status, error, error_code, is_public, created_at,
+				       narration::text AS narration
 				FROM stories WHERE slug = :slug
 				""")
 			.param("slug", slug)
@@ -114,6 +115,14 @@ public class StoryRepository {
 			.update();
 	}
 
+	/** Only the narration column, so it never races the character updates. */
+	public void setNarration(UUID storyId, String narrationJson) {
+		jdbc.sql("UPDATE stories SET narration = CAST(:narration AS jsonb), updated_at = now() WHERE id = :id")
+			.param("narration", narrationJson)
+			.param("id", storyId)
+			.update();
+	}
+
 	public void markReady(UUID storyId) {
 		jdbc.sql("UPDATE stories SET status = 'READY', error = NULL, error_code = NULL, updated_at = now() WHERE id = :id")
 			.param("id", storyId)
@@ -163,7 +172,7 @@ public class StoryRepository {
 	private static StoryRow story(ResultSet rs, int row) throws SQLException {
 		return new StoryRow(rs.getObject("id", UUID.class), rs.getString("slug"), rs.getString("text"), rs.getString("lang"),
 				rs.getString("plan"), StoryStatus.valueOf(rs.getString("status")), rs.getString("error"),
-				rs.getString("error_code"), rs.getBoolean("is_public"), instant(rs, "created_at"));
+				rs.getString("error_code"), rs.getBoolean("is_public"), instant(rs, "created_at"), rs.getString("narration"));
 	}
 
 	private static Instant instant(ResultSet rs, String column) throws SQLException {

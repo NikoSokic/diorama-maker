@@ -11,7 +11,9 @@ await page.goto(BASE + target)
 await page.waitForFunction(() => typeof window.__dioramaAudio === 'function', null, { timeout: 30000 })
 const snap = () => page.evaluate(() => window.__dioramaAudio())
 const show = (label, s) =>
-  console.log(label.padEnd(16), s.state.padEnd(9), (s.scene ?? '-').padEnd(34), `master=${s.levels.master} bed=${s.levels.bed.toFixed(2)} sfx=${s.levels.sfx}`, JSON.stringify(s.played))
+  console.log(label.padEnd(16), s.state.padEnd(9), (s.scene ?? '-').padEnd(34), `master=${s.levels.master} bed=${s.levels.bed.toFixed(2)} sfx=${s.levels.sfx}`,
+    s.voice ? `voice=${s.voice.playing ? 'playing' : 'idle'}@${s.voice.time.toFixed(1)}s` : 'voice=browser',
+    JSON.stringify(s.played))
 
 show('before Play', await snap())
 await page.keyboard.press('Space')

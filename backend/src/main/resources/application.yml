@@ -52,6 +52,11 @@ diorama:
     # live | mock — mock uses the offline planner (also used automatically when the key is missing).
     mode: ${GEMINI_MODE:live}
     model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+    # generated narrator voice (free tier); off = the browser reads the story
+    tts: ${GEMINI_TTS:on}
+    tts-model: ${GEMINI_TTS_MODEL:gemini-3.8-flash-tts}
+    tts-voice: ${GEMINI_TTS_VOICE:Kore}
+    tts-daily-limit: ${GEMINI_TTS_DAILY_LIMIT:150}
   storage:
     # auto | supabase | local
     mode: ${STORAGE_MODE:auto}
